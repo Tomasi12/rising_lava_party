@@ -58,6 +58,8 @@ The **Baseplate** template comes with its own `SpawnLocation` in `Workspace` (at
 Players could spawn there instead of in the lobby.
 → In Explorer, select **Workspace → SpawnLocation** and **delete** it. Keep the `Baseplate`.
 Then **Ctrl+S** to save the place.
+(Since step 10 the server also switches off any extra SpawnLocation when a game starts, with a warning
+in Output, so forgetting this is no longer a problem. Deleting it is still cleaner.)
 
 ## Rules
 - **Don't move or resize** the parts inside `Lobby` and `Arena` in Studio: Rojo overwrites them from the files.

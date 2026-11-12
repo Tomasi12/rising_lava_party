@@ -17,4 +17,4 @@ Everything we do to build the game is documented here, one file per step.
 | 7 | [Random platforms](07-random-platforms.md) | in progress (not tested) |
 | 8 | [Coins and leaderboard](08-coins-and-leaderboard.md) | in progress (not tested) |
 | 9 | [Save coins (DataStore)](09-save-coins.md) | in progress (not tested) |
-| 10 | Playtest, commit and push | to do |
+| 10 | [Playtest (testing guide)](10-testing-guide.md), commit and push | waiting for test in Studio |

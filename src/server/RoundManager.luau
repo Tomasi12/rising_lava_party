@@ -219,9 +219,23 @@ local function gameLoop()
 	end
 end
 
+-- Players must only (re)spawn in the lobby. The Baseplate template comes with its own
+-- SpawnLocation on the ground; switch off every spawn except the lobby's (for this server
+-- only, the saved place is not changed).
+local function disableOtherSpawns()
+	local lobbySpawn = getLobbySpawn()
+	for _, instance in Workspace:GetDescendants() do
+		if instance:IsA("SpawnLocation") and instance ~= lobbySpawn and instance.Enabled then
+			instance.Enabled = false
+			warn(`Disabled extra SpawnLocation "{instance:GetFullName()}" (players spawn in the lobby only)`)
+		end
+	end
+end
+
 -- Call once from the server entry point.
 function RoundManager.start()
 	assert(stateFolder == nil, "RoundManager.start() was called twice")
+	disableOtherSpawns()
 
 	local folder = Instance.new("Folder")
 	folder.Name = RoundState.FOLDER_NAME
