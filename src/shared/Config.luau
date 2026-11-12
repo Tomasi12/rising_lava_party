@@ -15,6 +15,17 @@ local Config = {
 	LAVA_START_DELAY = 5, -- seconds after the round starts before the lava begins to rise
 	LAVA_RISE_SPEED = 1.2, -- studs per second (after 85 s the lava is ~100 studs high)
 	LAVA_MAX_HEIGHT = 140, -- the lava stops rising at this height above the arena floor
+
+	-- Random platforms (built new for every round). Heights and distances in studs.
+	PLATFORM_PATHS = 3, -- number of climbing routes from the floor to the top
+	PLATFORM_EXTRAS = 20, -- extra platforms placed anywhere, for variety and shortcuts
+	PLATFORM_TOP_HEIGHT = 130, -- routes climb up to this height above the arena floor
+	PLATFORM_MIN_SIZE = 6, -- platforms are squares between MIN and MAX size
+	PLATFORM_MAX_SIZE = 12,
+	PLATFORM_STEP_UP_MIN = 3.5, -- each next platform on a route is this much higher...
+	PLATFORM_STEP_UP_MAX = 5.5,
+	PLATFORM_GAP_MIN = 1, -- ...with an edge-to-edge horizontal gap in this range
+	PLATFORM_GAP_MAX = 5,
 }
 
 return table.freeze(Config)

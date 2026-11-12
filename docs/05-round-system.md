@@ -45,9 +45,10 @@ client automatically, so the client only listens for changes. No RemoteEvents ar
 can't change the round (the server is the only one who writes).
 
 ## How later steps plug in
-`RoundManager` has two signals:
+`RoundManager` has three signals (`RoundPreparing` was added in [step 7](07-random-platforms.md)):
 ```lua
-RoundManager.RoundStarted:Connect(function(participants: { Player }) ... end) -- step 6: start lava, step 7: build platforms
+RoundManager.RoundPreparing:Connect(function() ... end)                        -- step 7: build platforms (before the teleport, must not yield)
+RoundManager.RoundStarted:Connect(function(participants: { Player }) ... end) -- step 6: start lava
 RoundManager.RoundEnded:Connect(function(survivors: { Player }) ... end)      -- step 6: reset lava, step 8: give coins
 ```
 So the lava, platforms and coins are separate modules and the round code doesn't change.

@@ -2,9 +2,15 @@
 -- Runs the game loop:  Waiting → Intermission → Round → Ended → (repeat)
 --
 -- Other server modules plug in through the signals:
+--   RoundManager.RoundPreparing:Connect(function() ... end)  -- before players are teleported
 --   RoundManager.RoundStarted:Connect(function(participants: {Player}) ... end)
 --   RoundManager.RoundEnded:Connect(function(survivors: {Player}) ... end)
--- (Step 6 starts the lava on RoundStarted, step 8 gives coins on RoundEnded.)
+-- (Step 7 builds the platforms on RoundPreparing, step 6 starts the lava on RoundStarted,
+--  step 8 gives coins on RoundEnded.)
+--
+-- RoundPreparing handlers must NOT yield (no task.wait / WaitForChild on missing objects):
+-- Signal:Fire runs each handler immediately until it yields, so a handler that doesn't
+-- yield is guaranteed to finish before the teleport.
 
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -18,6 +24,7 @@ local Phase = RoundState.Phase
 
 local RoundManager = {}
 
+RoundManager.RoundPreparing = Signal.new() -- ()
 RoundManager.RoundStarted = Signal.new() -- (participants: {Player})
 RoundManager.RoundEnded = Signal.new() -- (survivors: {Player})
 
@@ -118,6 +125,9 @@ local function runRound(): { Player }
 	if #participants == 0 then
 		return {}
 	end
+
+	-- Let other modules set up the arena (new platforms) before anyone arrives.
+	RoundManager.RoundPreparing:Fire()
 
 	-- Teleport to the arena, spread over the spawn points.
 	local spawnPoints = shuffled(getArenaSpawnPoints())
