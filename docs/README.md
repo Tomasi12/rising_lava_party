@@ -12,7 +12,7 @@ Everything we do to build the game is documented here, one file per step.
 | 2 | [Rojo project structure](02-project-structure.md) | done |
 | 3 | [Connect Studio to Rojo](03-connect-studio.md) | done |
 | 4 | [Lobby and arena](04-lobby-and-arena.md) | in progress |
-| 5 | Round system | to do |
+| 5 | [Round system](05-round-system.md) | in progress (not tested) |
 | 6 | Rising lava | to do |
 | 7 | Random platforms | to do |
 | 8 | Coins and leaderboard | to do |
