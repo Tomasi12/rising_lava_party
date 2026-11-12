@@ -4,7 +4,7 @@
 -- Other server modules plug in through the signals:
 --   RoundManager.RoundPreparing:Connect(function() ... end)  -- before players are teleported
 --   RoundManager.RoundStarted:Connect(function(participants: {Player}) ... end)
---   RoundManager.RoundEnded:Connect(function(survivors: {Player}) ... end)
+--   RoundManager.RoundEnded:Connect(function(survivors: {Player}, participants: {Player}) ... end)
 -- (Step 7 builds the platforms on RoundPreparing, step 6 starts the lava on RoundStarted,
 --  step 8 gives coins on RoundEnded.)
 --
@@ -26,7 +26,7 @@ local RoundManager = {}
 
 RoundManager.RoundPreparing = Signal.new() -- ()
 RoundManager.RoundStarted = Signal.new() -- (participants: {Player})
-RoundManager.RoundEnded = Signal.new() -- (survivors: {Player})
+RoundManager.RoundEnded = Signal.new() -- (survivors: {Player}, participants: {Player})
 
 local stateFolder: Folder? = nil
 
@@ -113,8 +113,9 @@ local function runIntermission()
 	end
 end
 
--- Teleports everyone into the arena, waits until the round is over and returns the survivors.
-local function runRound(): { Player }
+-- Teleports everyone into the arena, waits until the round is over.
+-- Returns the survivors and everyone who took part (both empty if nobody could play).
+local function runRound(): ({ Player }, { Player })
 	-- Everyone who is alive in the lobby right now takes part.
 	local participants: { Player } = {}
 	for _, player in Players:GetPlayers() do
@@ -123,7 +124,7 @@ local function runRound(): { Player }
 		end
 	end
 	if #participants == 0 then
-		return {}
+		return {}, {}
 	end
 
 	-- Let other modules set up the arena (new platforms) before anyone arrives.
@@ -182,17 +183,19 @@ local function runRound(): { Player }
 	for player in alive do
 		table.insert(survivors, player)
 	end
-	return survivors
+	return survivors, participants
 end
 
-local function showResult(survivors: { Player })
+local function showResult(survivors: { Player }, participants: { Player })
 	local message
 	if #survivors == 0 then
 		message = "Nobody survived!"
+	elseif #survivors == 1 and #participants > 1 then
+		message = `{survivors[1].DisplayName} wins! +{Config.COINS_SURVIVE + Config.COINS_WIN_BONUS} coins`
 	elseif #survivors == 1 then
-		message = `{survivors[1].DisplayName} wins!`
+		message = `{survivors[1].DisplayName} survived! +{Config.COINS_SURVIVE} coins`
 	else
-		message = `{#survivors} players survived!`
+		message = `{#survivors} players survived! +{Config.COINS_SURVIVE} coins`
 	end
 	setState(Phase.Ended, Config.END_TIME, message)
 	task.wait(Config.END_TIME)
@@ -201,9 +204,12 @@ end
 local function gameLoop()
 	while true do
 		runIntermission()
-		local survivors = runRound()
-		RoundManager.RoundEnded:Fire(survivors)
-		showResult(survivors)
+		local survivors, participants = runRound()
+		if #participants == 0 then
+			continue -- nobody was alive in the lobby (e.g. everyone respawning): just count down again
+		end
+		RoundManager.RoundEnded:Fire(survivors, participants)
+		showResult(survivors, participants)
 		-- Dead players already respawn in the lobby; bring the survivors back too.
 		for _, player in survivors do
 			if player.Parent then

@@ -15,6 +15,6 @@ Everything we do to build the game is documented here, one file per step.
 | 5 | [Round system](05-round-system.md) | in progress (not tested) |
 | 6 | [Rising lava](06-rising-lava.md) | in progress (not tested) |
 | 7 | [Random platforms](07-random-platforms.md) | in progress (not tested) |
-| 8 | Coins and leaderboard | to do |
+| 8 | [Coins and leaderboard](08-coins-and-leaderboard.md) | in progress (not tested) |
 | 9 | Save coins (DataStore) | to do |
 | 10 | Playtest, commit and push | to do |

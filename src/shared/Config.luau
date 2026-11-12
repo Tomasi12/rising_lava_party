@@ -26,6 +26,10 @@ local Config = {
 	PLATFORM_STEP_UP_MAX = 5.5,
 	PLATFORM_GAP_MIN = 1, -- ...with an edge-to-edge horizontal gap in this range
 	PLATFORM_GAP_MAX = 5,
+
+	-- Coins
+	COINS_SURVIVE = 10, -- every player alive at the end of a round
+	COINS_WIN_BONUS = 15, -- extra for the last player standing (only when 2+ players took part)
 }
 
 return table.freeze(Config)

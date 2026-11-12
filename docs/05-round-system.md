@@ -16,7 +16,7 @@ The server runs a loop forever:
 | **Waiting** | Fewer than `MIN_PLAYERS` players in the server | `Waiting for players...` |
 | **Intermission** | Countdown in the lobby | `Round starts in 15` … `1` |
 | **Round** | All living players are teleported to the arena spawn points (shuffled). The round ends when the time runs out, or when only one player is left (with 2+ players), or when the only player dies (alone). | `Survive! 45s · 3 alive` |
-| **Ended** | Shows the result, then survivors are teleported back to the lobby. Dead players have already respawned in the lobby. | `Alex wins!` / `3 players survived!` / `Nobody survived!` |
+| **Ended** | Shows the result, then survivors are teleported back to the lobby. Dead players have already respawned in the lobby. | `Alex wins! +25 coins` / `3 players survived! +10 coins` / `Nobody survived!` (coins since step 8) |
 
 A player is **out** when their character dies or they leave the game.
 Players who join during a round wait in the lobby for the next one.
@@ -49,7 +49,7 @@ can't change the round (the server is the only one who writes).
 ```lua
 RoundManager.RoundPreparing:Connect(function() ... end)                        -- step 7: build platforms (before the teleport, must not yield)
 RoundManager.RoundStarted:Connect(function(participants: { Player }) ... end) -- step 6: start lava
-RoundManager.RoundEnded:Connect(function(survivors: { Player }) ... end)      -- step 6: reset lava, step 8: give coins
+RoundManager.RoundEnded:Connect(function(survivors: { Player }, participants: { Player }) ... end) -- step 6: reset lava, step 8: give coins
 ```
 So the lava, platforms and coins are separate modules and the round code doesn't change.
 
