@@ -13,7 +13,7 @@ Everything we do to build the game is documented here, one file per step.
 | 3 | [Connect Studio to Rojo](03-connect-studio.md) | done |
 | 4 | [Lobby and arena](04-lobby-and-arena.md) | in progress |
 | 5 | [Round system](05-round-system.md) | in progress (not tested) |
-| 6 | Rising lava | to do |
+| 6 | [Rising lava](06-rising-lava.md) | in progress (not tested) |
 | 7 | Random platforms | to do |
 | 8 | Coins and leaderboard | to do |
 | 9 | Save coins (DataStore) | to do |
