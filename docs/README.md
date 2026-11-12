@@ -10,7 +10,7 @@ Everything we do to build the game is documented here, one file per step.
 |---|------|--------|
 | 1 | [Install Rojo](01-install-rojo.md) | done |
 | 2 | [Rojo project structure](02-project-structure.md) | done |
-| 3 | [Connect Studio to Rojo](03-connect-studio.md) | in progress |
+| 3 | [Connect Studio to Rojo](03-connect-studio.md) | done |
 | 4 | Lobby and arena | to do |
 | 5 | Round system | to do |
 | 6 | Rising lava | to do |

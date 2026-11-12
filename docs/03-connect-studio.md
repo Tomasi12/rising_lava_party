@@ -1,6 +1,6 @@
 # Step 3 — Connect Roblox Studio to Rojo
 
-Date: 2026-11-12 · Status: **in progress** (waiting for the test in Studio)
+Date: 2026-11-12 · Status: **done** (tested in Studio on 2026-11-12: both Output messages appeared)
 
 ## Why
 Once Studio is connected, every change to the files in `src/` shows up in Studio within a second.
