@@ -34,7 +34,13 @@
 
     "Workspace": {
       "$className": "Workspace",
-      "$ignoreUnknownInstances": true
+      "$ignoreUnknownInstances": true,
+      "Lobby": {
+        "$path": "src/workspace/Lobby.model.json"
+      },
+      "Arena": {
+        "$path": "src/workspace/Arena.model.json"
+      }
     }
   }
 }

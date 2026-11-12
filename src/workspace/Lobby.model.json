@@ -1,0 +1,76 @@
+{
+  "className": "Model",
+  "children": [
+    {
+      "name": "Floor",
+      "className": "Part",
+      "properties": {
+        "Anchored": true,
+        "Size": [60, 2, 60],
+        "CFrame": { "CFrame": { "position": [0, 199, 0], "orientation": [[1, 0, 0], [0, 1, 0], [0, 0, 1]] } },
+        "Color": [0.42, 0.72, 0.38],
+        "Material": { "Enum": 1280 },
+        "TopSurface": { "Enum": 0 },
+        "BottomSurface": { "Enum": 0 }
+      }
+    },
+    {
+      "name": "LobbySpawn",
+      "className": "SpawnLocation",
+      "properties": {
+        "Anchored": true,
+        "Neutral": true,
+        "Duration": 0,
+        "Size": [8, 1, 8],
+        "CFrame": { "CFrame": { "position": [0, 200.5, 0], "orientation": [[1, 0, 0], [0, 1, 0], [0, 0, 1]] } },
+        "Color": [1, 0.8, 0.2],
+        "TopSurface": { "Enum": 0 },
+        "BottomSurface": { "Enum": 0 }
+      }
+    },
+    {
+      "name": "WallNorth",
+      "className": "Part",
+      "properties": {
+        "Anchored": true,
+        "Size": [62, 10, 2],
+        "CFrame": { "CFrame": { "position": [0, 205, -31], "orientation": [[1, 0, 0], [0, 1, 0], [0, 0, 1]] } },
+        "Transparency": 0.6,
+        "Color": [0.8, 0.9, 1]
+      }
+    },
+    {
+      "name": "WallSouth",
+      "className": "Part",
+      "properties": {
+        "Anchored": true,
+        "Size": [62, 10, 2],
+        "CFrame": { "CFrame": { "position": [0, 205, 31], "orientation": [[1, 0, 0], [0, 1, 0], [0, 0, 1]] } },
+        "Transparency": 0.6,
+        "Color": [0.8, 0.9, 1]
+      }
+    },
+    {
+      "name": "WallEast",
+      "className": "Part",
+      "properties": {
+        "Anchored": true,
+        "Size": [2, 10, 60],
+        "CFrame": { "CFrame": { "position": [31, 205, 0], "orientation": [[1, 0, 0], [0, 1, 0], [0, 0, 1]] } },
+        "Transparency": 0.6,
+        "Color": [0.8, 0.9, 1]
+      }
+    },
+    {
+      "name": "WallWest",
+      "className": "Part",
+      "properties": {
+        "Anchored": true,
+        "Size": [2, 10, 60],
+        "CFrame": { "CFrame": { "position": [-31, 205, 0], "orientation": [[1, 0, 0], [0, 1, 0], [0, 0, 1]] } },
+        "Transparency": 0.6,
+        "Color": [0.8, 0.9, 1]
+      }
+    }
+  ]
+}

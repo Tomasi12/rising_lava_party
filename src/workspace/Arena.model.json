@@ -1,0 +1,80 @@
+{
+  "className": "Model",
+  "children": [
+    {
+      "name": "Floor",
+      "className": "Part",
+      "properties": {
+        "Anchored": true,
+        "Size": [100, 2, 100],
+        "CFrame": { "CFrame": { "position": [300, 1, 0], "orientation": [[1, 0, 0], [0, 1, 0], [0, 0, 1]] } },
+        "Color": [0.25, 0.22, 0.22],
+        "Material": { "Enum": 788 },
+        "TopSurface": { "Enum": 0 },
+        "BottomSurface": { "Enum": 0 }
+      }
+    },
+    {
+      "name": "WallNorth",
+      "className": "Part",
+      "properties": {
+        "Anchored": true,
+        "Size": [104, 150, 2],
+        "CFrame": { "CFrame": { "position": [300, 77, -51], "orientation": [[1, 0, 0], [0, 1, 0], [0, 0, 1]] } },
+        "Transparency": 0.7,
+        "Color": [0.7, 0.85, 1]
+      }
+    },
+    {
+      "name": "WallSouth",
+      "className": "Part",
+      "properties": {
+        "Anchored": true,
+        "Size": [104, 150, 2],
+        "CFrame": { "CFrame": { "position": [300, 77, 51], "orientation": [[1, 0, 0], [0, 1, 0], [0, 0, 1]] } },
+        "Transparency": 0.7,
+        "Color": [0.7, 0.85, 1]
+      }
+    },
+    {
+      "name": "WallEast",
+      "className": "Part",
+      "properties": {
+        "Anchored": true,
+        "Size": [2, 150, 100],
+        "CFrame": { "CFrame": { "position": [351, 77, 0], "orientation": [[1, 0, 0], [0, 1, 0], [0, 0, 1]] } },
+        "Transparency": 0.7,
+        "Color": [0.7, 0.85, 1]
+      }
+    },
+    {
+      "name": "WallWest",
+      "className": "Part",
+      "properties": {
+        "Anchored": true,
+        "Size": [2, 150, 100],
+        "CFrame": { "CFrame": { "position": [249, 77, 0], "orientation": [[1, 0, 0], [0, 1, 0], [0, 0, 1]] } },
+        "Transparency": 0.7,
+        "Color": [0.7, 0.85, 1]
+      }
+    },
+    {
+      "name": "SpawnPoints",
+      "className": "Folder",
+      "children": [
+        { "name": "Spawn1", "className": "Part", "properties": { "Anchored": true, "CanCollide": false, "CanTouch": false, "CanQuery": false, "Transparency": 1, "Size": [4, 1, 4], "CFrame": { "CFrame": { "position": [335, 5, 0], "orientation": [[1, 0, 0], [0, 1, 0], [0, 0, 1]] } } } },
+        { "name": "Spawn2", "className": "Part", "properties": { "Anchored": true, "CanCollide": false, "CanTouch": false, "CanQuery": false, "Transparency": 1, "Size": [4, 1, 4], "CFrame": { "CFrame": { "position": [265, 5, 0], "orientation": [[1, 0, 0], [0, 1, 0], [0, 0, 1]] } } } },
+        { "name": "Spawn3", "className": "Part", "properties": { "Anchored": true, "CanCollide": false, "CanTouch": false, "CanQuery": false, "Transparency": 1, "Size": [4, 1, 4], "CFrame": { "CFrame": { "position": [300, 5, 35], "orientation": [[1, 0, 0], [0, 1, 0], [0, 0, 1]] } } } },
+        { "name": "Spawn4", "className": "Part", "properties": { "Anchored": true, "CanCollide": false, "CanTouch": false, "CanQuery": false, "Transparency": 1, "Size": [4, 1, 4], "CFrame": { "CFrame": { "position": [300, 5, -35], "orientation": [[1, 0, 0], [0, 1, 0], [0, 0, 1]] } } } },
+        { "name": "Spawn5", "className": "Part", "properties": { "Anchored": true, "CanCollide": false, "CanTouch": false, "CanQuery": false, "Transparency": 1, "Size": [4, 1, 4], "CFrame": { "CFrame": { "position": [325, 5, 25], "orientation": [[1, 0, 0], [0, 1, 0], [0, 0, 1]] } } } },
+        { "name": "Spawn6", "className": "Part", "properties": { "Anchored": true, "CanCollide": false, "CanTouch": false, "CanQuery": false, "Transparency": 1, "Size": [4, 1, 4], "CFrame": { "CFrame": { "position": [275, 5, 25], "orientation": [[1, 0, 0], [0, 1, 0], [0, 0, 1]] } } } },
+        { "name": "Spawn7", "className": "Part", "properties": { "Anchored": true, "CanCollide": false, "CanTouch": false, "CanQuery": false, "Transparency": 1, "Size": [4, 1, 4], "CFrame": { "CFrame": { "position": [325, 5, -25], "orientation": [[1, 0, 0], [0, 1, 0], [0, 0, 1]] } } } },
+        { "name": "Spawn8", "className": "Part", "properties": { "Anchored": true, "CanCollide": false, "CanTouch": false, "CanQuery": false, "Transparency": 1, "Size": [4, 1, 4], "CFrame": { "CFrame": { "position": [275, 5, -25], "orientation": [[1, 0, 0], [0, 1, 0], [0, 0, 1]] } } } }
+      ]
+    },
+    {
+      "name": "Platforms",
+      "className": "Folder"
+    }
+  ]
+}

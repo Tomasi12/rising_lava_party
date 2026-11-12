@@ -32,7 +32,8 @@ rising_lava_party/
 ## The files
 - [`default.project.json`](../default.project.json) — the mapping above. Each service has
   `"$ignoreUnknownInstances": true`, so things you build in Studio (lobby, arena parts) are **not deleted**
-  by Rojo. `Workspace` is listed but has no `$path`: the map stays Studio-only for now.
+  by Rojo. `Workspace` started with no `$path`. Since step 4 it also holds the base map (`Lobby`, `Arena`) from
+  `src/workspace/`; see [step 4](04-lobby-and-arena.md).
 - [`src/shared/Config.luau`](../src/shared/Config.luau) — one place for all game settings (names, timers,
   rewards). Frozen with `table.freeze` so scripts can't change it by accident.
 - [`src/server/Main.server.luau`](../src/server/Main.server.luau) — server entry point. For now it prints
