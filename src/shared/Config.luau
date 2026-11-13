@@ -34,6 +34,7 @@ local Config = {
 	CRUMBLE_ENABLED = true,
 	CRUMBLE_DELAY = 2, -- seconds from landing until it falls
 	CRUMBLE_FALL_TIME = 0.6, -- seconds the falling animation takes
+	CRUMBLE_RESPAWN_TIME = 4, -- seconds until a fallen platform comes back
 
 	-- Coins
 	COINS_SURVIVE = 10, -- every player alive at the end of a round

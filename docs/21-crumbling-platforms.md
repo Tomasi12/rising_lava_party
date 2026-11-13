@@ -10,7 +10,10 @@ We do one change at a time and play it before the next one.
 ## What it does
 - You land on a platform → it **shakes** and slowly turns **red**.
 - After **2 seconds** it **falls away** and fades out. If you're still on it, you fall.
-- Each platform crumbles only once and doesn't come back this round.
+- It **comes back 4 seconds later** (fades in) and can crumble again. So there is always somewhere to
+  jump, but you can never stand still.
+  (First version: platforms never came back, so at the top you were forced into the lava.
+  Play test 2026-11-13: "annoying". Falling should be your own mistake, not unavoidable.)
 - Only real landings count (your body above the platform), not brushing its side while jumping past.
 
 ## Settings ([`Config.luau`](../src/shared/Config.luau))
@@ -19,6 +22,7 @@ We do one change at a time and play it before the next one.
 | `CRUMBLE_ENABLED` | `true` | switch the feature off |
 | `CRUMBLE_DELAY` | `2` | seconds from landing until it falls (lower = harder) |
 | `CRUMBLE_FALL_TIME` | `0.6` | length of the fall animation |
+| `CRUMBLE_RESPAWN_TIME` | `4` | seconds until a fallen platform comes back |
 
 ## Files
 | File | Job |

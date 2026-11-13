@@ -1,6 +1,7 @@
 --!strict
 -- Crumbling platforms (step 21): when a player lands on a platform, it starts shaking and
--- turns red, and after Config.CRUMBLE_DELAY seconds it falls away. Players can't stand still:
+-- turns red, and after Config.CRUMBLE_DELAY seconds it falls away. It comes back after
+-- Config.CRUMBLE_RESPAWN_TIME seconds, so there is always somewhere to jump. Players can't stand still:
 -- they must keep moving, which is what makes a round exciting.
 --
 -- PlatformService calls PlatformCrumble.attach(part) for every platform it creates.
@@ -15,6 +16,7 @@ local SHAKE_STEP = 0.05 -- seconds between shake moves
 local SHAKE_DISTANCE = 0.12 -- studs; small, so players standing on it aren't thrown off
 local WARNING_COLOR = Color3.fromRGB(230, 60, 40)
 local FALL_DISTANCE = 10 -- studs the platform drops while fading out
+local RESPAWN_FADE_TIME = 0.5 -- seconds a returning platform takes to fade in
 
 local PlatformCrumble = {}
 
@@ -70,27 +72,35 @@ local function crumble(platform: BasePart)
 	})
 	tween:Play()
 	tween.Completed:Wait()
-	if platform.Parent then
-		platform:Destroy()
+
+	-- Come back after a while, so there is always somewhere to jump.
+	task.wait(Config.CRUMBLE_RESPAWN_TIME)
+	if not platform.Parent then
+		return
 	end
+	platform.CFrame = home
+	platform.Color = startColor
+	local appear = TweenService:Create(platform, TweenInfo.new(RESPAWN_FADE_TIME), { Transparency = 0 })
+	appear:Play()
+	appear.Completed:Wait()
+	platform.CanCollide = true
 end
 
--- Makes the platform crumble the first time a player lands on it.
+-- Makes the platform crumble every time a player lands on it (once it has come back).
 function PlatformCrumble.attach(platform: BasePart)
 	if not Config.CRUMBLE_ENABLED then
 		return
 	end
-	local started = false
-	local connection: RBXScriptConnection? = nil
-	connection = platform.Touched:Connect(function(hit: BasePart)
-		if started or not isPlayerStandingOn(hit, platform) then
+	local busy = false -- shaking, fallen or coming back
+	platform.Touched:Connect(function(hit: BasePart)
+		if busy or not isPlayerStandingOn(hit, platform) then
 			return
 		end
-		started = true
-		if connection then
-			connection:Disconnect()
-		end
-		task.spawn(crumble, platform)
+		busy = true
+		task.spawn(function()
+			crumble(platform)
+			busy = false
+		end)
 	end)
 end
 
