@@ -14,7 +14,7 @@ local PlayerAttributes = {
 	EQUIPPED_TRAIL = "EquippedTrail", -- string: item id, or "" for none
 
 	-- Game passes (step 16)
-	PASS_PREFIX = "Pass_", -- boolean per pass, e.g. "Pass_DoubleCoins"
+	PASS_PREFIX = "Pass_", -- boolean per pass, key from Config.GAME_PASSES, e.g. "Pass_VIP"
 }
 
 return table.freeze(PlayerAttributes)

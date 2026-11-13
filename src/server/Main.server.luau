@@ -12,6 +12,7 @@ local EventService = require(script.Parent.EventService)
 local LavaService = require(script.Parent.LavaService)
 local PlatformService = require(script.Parent.PlatformService)
 local RoundManager = require(script.Parent.RoundManager)
+local ShopService = require(script.Parent.ShopService)
 
 print(`{Config.GAME_NAME} server started`)
 
@@ -19,6 +20,7 @@ print(`{Config.GAME_NAME} server started`)
 CoinService.init()
 BadgeService.init()
 DailyRewardService.init() -- before DataService: listens to DataService.Loaded
+ShopService.init() -- before DataService: listens to DataService.Loaded
 DataService.init() -- after CoinService and every DataService.Loaded listener
 EventService.init() -- before PlatformService: the platforms read the round event
 PlatformService.init()

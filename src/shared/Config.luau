@@ -39,6 +39,18 @@ local Config = {
 	DAILY_REWARD_BASE = 10,
 	DAILY_REWARD_MAX_STREAK = 7,
 
+	-- Robux items. Create them on create.roblox.com (see docs/16 and docs/17) and paste the IDs here.
+	-- 0 = not created yet: the item is hidden in the shop and the feature is off.
+	GAME_PASSES = table.freeze({
+		DOUBLE_COINS = 0, -- step 16: 2x coins from rounds
+		VIP = 0, -- step 16: gold trail, VIP tag, 1.5x coins
+	}),
+	PRODUCTS = table.freeze({
+		REVIVE = 0, -- step 17: back into the round once
+		COINS_500 = 0, -- step 17
+		COINS_2000 = 0, -- step 17
+	}),
+
 	-- Badges (step 14). Create them on create.roblox.com and paste the badge IDs here.
 	-- 0 = badge not created yet (it is simply not awarded).
 	BADGES = table.freeze({
