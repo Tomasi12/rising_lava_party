@@ -1,12 +1,11 @@
 --!strict
--- Coins: the game's currency.
--- - Every player gets a `leaderstats` folder with a `Coins` value, so Roblox shows it
---   on the player list (top right).
--- - Survivors of a round get coins; the last player standing gets a bonus.
--- - Other modules use CoinService.get / CoinService.add / CoinService.set
---   (DataService in step 9 loads and saves the value; a shop will spend it later).
+-- Coins and Wins, shown on the player list (leaderstats).
+-- - Coins: the game's currency. Survivors of a round get coins; the last player standing a bonus.
+-- - Wins: +1 every time you are still alive at the end of a round (step 14).
+-- - Other modules use CoinService.get / add / set / spend and getWins / setWins
+--   (DataService loads and saves them, the shop spends coins).
 --
--- Only the server changes coins. The client just sees the leaderboard.
+-- Only the server changes these values. The client just sees the leaderboard.
 
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -14,40 +13,87 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Config = require(ReplicatedStorage.Shared.Config)
 local Net = require(script.Parent.Net)
 local RoundManager = require(script.Parent.RoundManager)
+local Signal = require(script.Parent.Signal)
 
 local CoinService = {}
 
--- Creates leaderstats/Coins for the player if it doesn't exist yet, and returns the value.
--- Safe to call many times (CoinService and DataService both call it).
-function CoinService.ensureLeaderstats(player: Player): IntValue
+-- Fires (player, wins) when a player's wins go up by winning a round (used by badges).
+CoinService.WinAdded = Signal.new()
+
+-- Returns the multiplier for round coins (2 with the 2x Coins pass). Set by GamePassService (step 16).
+local rewardMultiplier: (Player) -> number = function()
+	return 1
+end
+
+function CoinService.setRewardMultiplier(fn: (Player) -> number)
+	rewardMultiplier = fn
+end
+
+local function ensureValue(leaderstats: Instance, name: string): IntValue
+	local value = leaderstats:FindFirstChild(name)
+	if not value then
+		local newValue = Instance.new("IntValue")
+		newValue.Name = name
+		newValue.Value = 0
+		newValue.Parent = leaderstats
+		return newValue
+	end
+	return value :: IntValue
+end
+
+-- Creates leaderstats with Coins and Wins (in that order on the player list) if they don't exist yet.
+-- Safe to call many times.
+function CoinService.ensureLeaderstats(player: Player): Instance
 	local leaderstats = player:FindFirstChild("leaderstats")
 	if not leaderstats then
-		leaderstats = Instance.new("Folder")
-		leaderstats.Name = "leaderstats" -- this exact name makes Roblox show it on the player list
-		leaderstats.Parent = player
+		local folder = Instance.new("Folder")
+		folder.Name = "leaderstats" -- this exact name makes Roblox show it on the player list
+		folder.Parent = player
+		leaderstats = folder
 	end
-	local coins = leaderstats:FindFirstChild("Coins")
-	if not coins then
-		local value = Instance.new("IntValue")
-		value.Name = "Coins"
-		value.Value = 0
-		value.Parent = leaderstats
-		coins = value
-	end
-	return coins :: IntValue
+	local stats = leaderstats :: Instance
+	ensureValue(stats, "Coins")
+	ensureValue(stats, "Wins")
+	return stats
+end
+
+local function coinsValue(player: Player): IntValue
+	return ensureValue(CoinService.ensureLeaderstats(player), "Coins")
+end
+
+local function winsValue(player: Player): IntValue
+	return ensureValue(CoinService.ensureLeaderstats(player), "Wins")
 end
 
 function CoinService.get(player: Player): number
-	return CoinService.ensureLeaderstats(player).Value
+	return coinsValue(player).Value
 end
 
 function CoinService.set(player: Player, amount: number)
-	CoinService.ensureLeaderstats(player).Value = math.max(0, math.floor(amount))
+	coinsValue(player).Value = math.max(0, math.floor(amount))
 end
 
 function CoinService.add(player: Player, amount: number)
-	local coins = CoinService.ensureLeaderstats(player)
+	local coins = coinsValue(player)
 	coins.Value = math.max(0, coins.Value + math.floor(amount))
+end
+
+-- Removes `amount` coins if the player has enough. Returns true if they were spent.
+function CoinService.spend(player: Player, amount: number): boolean
+	local coins = coinsValue(player)
+	if coins.Value < amount then
+		return false
+	end
+	coins.Value -= amount
+	return true
+end
+
+function CoinService.getWins(player: Player): number
+	return winsValue(player).Value
+end
+
+function CoinService.setWins(player: Player, wins: number)
+	winsValue(player).Value = math.max(0, math.floor(wins))
 end
 
 local function rewardSurvivors(survivors: { Player }, participants: { Player })
@@ -58,8 +104,14 @@ local function rewardSurvivors(survivors: { Player }, participants: { Player })
 			if lastStanding then
 				reward += Config.COINS_WIN_BONUS
 			end
+			local multiplier = rewardMultiplier(player)
+			reward *= multiplier
 			CoinService.add(player, reward)
-			Net.notify(player, `+{reward} coins`, "coins")
+			Net.notify(player, if multiplier > 1 then `+{reward} coins (x{multiplier})` else `+{reward} coins`, "coins")
+
+			local wins = winsValue(player)
+			wins.Value += 1
+			CoinService.WinAdded:Fire(player, wins.Value)
 		end
 	end
 end

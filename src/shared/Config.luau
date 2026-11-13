@@ -34,6 +34,20 @@ local Config = {
 	COINS_SURVIVE = 10, -- every player alive at the end of a round
 	COINS_WIN_BONUS = 15, -- extra for the last player standing (only when 2+ players took part)
 
+	-- Daily reward (step 14): DAILY_REWARD_BASE × day of the streak, up to MAX_STREAK days.
+	-- Day 1: 10, day 2: 20, ... day 7 and later: 70. Missing a day starts again at day 1.
+	DAILY_REWARD_BASE = 10,
+	DAILY_REWARD_MAX_STREAK = 7,
+
+	-- Badges (step 14). Create them on create.roblox.com and paste the badge IDs here.
+	-- 0 = badge not created yet (it is simply not awarded).
+	BADGES = table.freeze({
+		WELCOME = 0, -- joined the game for the first time
+		FIRST_WIN = 0, -- 1 win
+		WINS_10 = 0, -- 10 wins
+		WINS_100 = 0, -- 100 wins
+	}),
+
 	-- Sounds (step 11). "rbxasset://sounds/..." are sounds built into Roblox.
 	-- To use a sound from the Creator Store, paste its id like "rbxassetid://1234567890".
 	-- An empty string "" means no sound.
