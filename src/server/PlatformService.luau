@@ -19,6 +19,7 @@ local Workspace = game:GetService("Workspace")
 
 local Config = require(ReplicatedStorage.Shared.Config)
 local EventService = require(script.Parent.EventService)
+local PlatformCrumble = require(script.Parent.PlatformCrumble)
 local RoundManager = require(script.Parent.RoundManager)
 
 local THICKNESS = 1 -- platform height in studs
@@ -96,6 +97,7 @@ local function createPart(box: Box, floorTop: number, folder: Folder)
 	local progress = math.clamp((box.y - floorTop) / Config.PLATFORM_TOP_HEIGHT, 0, 1)
 	part.Color = LOW_COLOR:Lerp(HIGH_COLOR, progress)
 	part.Parent = folder
+	PlatformCrumble.attach(part) -- falls away shortly after a player lands on it (step 21)
 end
 
 -- A random spot on the floor area, `height` above the floor.

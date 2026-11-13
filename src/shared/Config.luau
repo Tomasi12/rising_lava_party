@@ -30,6 +30,11 @@ local Config = {
 	PLATFORM_GAP_MIN = 1, -- ...with an edge-to-edge horizontal gap in this range
 	PLATFORM_GAP_MAX = 5,
 
+	-- Crumbling platforms (step 21): a platform shakes, turns red and falls away after a player lands on it.
+	CRUMBLE_ENABLED = true,
+	CRUMBLE_DELAY = 2, -- seconds from landing until it falls
+	CRUMBLE_FALL_TIME = 0.6, -- seconds the falling animation takes
+
 	-- Coins
 	COINS_SURVIVE = 10, -- every player alive at the end of a round
 	COINS_WIN_BONUS = 15, -- extra for the last player standing (only when 2+ players took part)

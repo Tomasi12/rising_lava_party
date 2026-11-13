@@ -32,3 +32,4 @@ Everything we do to build the game is documented here, one file per step.
 | 18 | [Global leaderboard](18-global-leaderboard.md) | in progress (not tested) |
 | 19 | [Mobile check and launch checklist](19-mobile-and-launch.md) | to do by you |
 | 20 | [Testing guide 2](20-testing-guide-2.md) | waiting for test in Studio |
+| 21 | [Crumbling platforms](21-crumbling-platforms.md) | in progress (play test) |
