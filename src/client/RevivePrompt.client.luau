@@ -54,6 +54,7 @@ local function refresh()
 		and player:GetAttribute(PlayerAttributes.WAS_IN_ROUND) == true
 		and player:GetAttribute(PlayerAttributes.IN_ROUND) ~= true
 		and player:GetAttribute(PlayerAttributes.REVIVED) ~= true
+		and player:GetAttribute(PlayerAttributes.FINISHED) ~= true
 end
 
 button.Activated:Connect(function()
@@ -65,4 +66,5 @@ stateFolder:GetAttributeChangedSignal(RoundState.ATTR_PHASE):Connect(refresh)
 player:GetAttributeChangedSignal(PlayerAttributes.IN_ROUND):Connect(refresh)
 player:GetAttributeChangedSignal(PlayerAttributes.WAS_IN_ROUND):Connect(refresh)
 player:GetAttributeChangedSignal(PlayerAttributes.REVIVED):Connect(refresh)
+player:GetAttributeChangedSignal(PlayerAttributes.FINISHED):Connect(refresh)
 refresh()

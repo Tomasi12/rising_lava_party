@@ -1,7 +1,8 @@
 --!strict
 -- Coins and Wins, shown on the player list (leaderstats).
--- - Coins: the game's currency. Survivors of a round get coins; the last player standing a bonus.
--- - Wins: +1 every time you are still alive at the end of a round (step 14).
+-- - Coins: the game's currency. Everyone who reaches the summit gets coins; the first one
+--   gets a bonus (only when 2+ players took part).
+-- - Wins: +1 every time you reach the summit (steps 14, 22).
 -- - Other modules use CoinService.get / add / set / spend and getWins / setWins
 --   (DataService loads and saves them, the shop spends coins).
 --
@@ -97,11 +98,11 @@ function CoinService.setWins(player: Player, wins: number)
 end
 
 local function rewardSurvivors(survivors: { Player }, participants: { Player })
-	local lastStanding = #survivors == 1 and #participants > 1
-	for _, player in survivors do
+	-- survivors = players who reached the summit, in arrival order.
+	for place, player in survivors do
 		if player.Parent then -- still in the game
 			local reward = Config.COINS_SURVIVE
-			if lastStanding then
+			if place == 1 and #participants > 1 then
 				reward += Config.COINS_WIN_BONUS
 			end
 			local multiplier = rewardMultiplier(player)

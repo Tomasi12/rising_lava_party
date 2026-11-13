@@ -1,6 +1,6 @@
 --!strict
 -- Round sounds: a tick in the last 5 seconds of the countdown, a sound when the round starts,
--- and a victory sound if you survived. (Step 11.)
+-- and a victory sound when you reach the summit. (Steps 11, 22.)
 
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -31,7 +31,12 @@ stateFolder:GetAttributeChangedSignal(RoundState.ATTR_PHASE):Connect(function()
 	lastPhase = phase
 	if phase == RoundState.Phase.Round then
 		SoundPlayer.play(Config.SOUNDS.ROUND_START)
-	elseif phase == RoundState.Phase.Ended and player:GetAttribute(PlayerAttributes.IN_ROUND) == true then
+	end
+end)
+
+-- Victory sound the moment you reach the summit (step 22).
+player:GetAttributeChangedSignal(PlayerAttributes.FINISHED):Connect(function()
+	if player:GetAttribute(PlayerAttributes.FINISHED) == true then
 		SoundPlayer.play(Config.SOUNDS.VICTORY)
 	end
 end)

@@ -14,7 +14,12 @@
 -- were connected (the order of the init() calls in Main.server.luau).
 --
 -- Each player gets attributes (see shared/PlayerAttributes) so clients know who is
--- still in the round: InRound, WasInRound, RevivedThisRound.
+-- still in the round: InRound, WasInRound, RevivedThisRound, FinishedRound.
+--
+-- Goal of a round (step 22): reach the golden summit at the top before the lava gets you.
+-- SummitService calls RoundManager.finish(player) when a player reaches it. The round ends
+-- when nobody is still climbing (everyone finished or is out) or the time runs out.
+-- "survivors" in RoundEnded = the players who reached the summit, in the order they arrived.
 
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -36,8 +41,9 @@ RoundManager.RoundEnded = Signal.new() -- (survivors: {Player}, participants: {P
 -- The round being played right now (nil between rounds).
 type Round = {
 	participants: { Player },
-	alive: { [Player]: boolean },
+	alive: { [Player]: boolean }, -- still climbing
 	aliveCount: number,
+	finished: { Player }, -- reached the summit, in arrival order
 	connections: { RBXScriptConnection },
 }
 
@@ -128,6 +134,7 @@ local function clearRoundAttributes()
 		player:SetAttribute(PlayerAttributes.IN_ROUND, false)
 		player:SetAttribute(PlayerAttributes.WAS_IN_ROUND, false)
 		player:SetAttribute(PlayerAttributes.REVIVED, false)
+		player:SetAttribute(PlayerAttributes.FINISHED, false)
 	end
 end
 
@@ -182,7 +189,7 @@ local function runRound(): ({ Player }, { Player })
 	end
 
 	-- Track who is still alive. A player is out when they die or leave the game.
-	local round: Round = { participants = participants, alive = {}, aliveCount = 0, connections = {} }
+	local round: Round = { participants = participants, alive = {}, aliveCount = 0, finished = {}, connections = {} }
 	for _, player in participants do
 		local humanoid = getLivingHumanoid(player)
 		if humanoid then
@@ -196,15 +203,13 @@ local function runRound(): ({ Player }, { Player })
 
 	RoundManager.RoundStarted:Fire(participants)
 
-	-- With several players the round ends when one is left (the winner).
-	-- Alone (testing), it ends when you die or the time runs out.
-	local playersNeededToContinue = if #participants > 1 then 2 else 1
-
+	-- The round ends when nobody is climbing anymore, or when the time runs out.
 	for timeLeft = Config.ROUND_TIME, 1, -1 do
-		if round.aliveCount < playersNeededToContinue then
+		if round.aliveCount == 0 then
 			break
 		end
-		setState(Phase.Round, timeLeft, `Survive! {timeLeft}s · {round.aliveCount} alive`)
+		local atTop = if #round.finished > 0 then ` · {#round.finished} at the top` else ""
+		setState(Phase.Round, timeLeft, `Reach the top! {timeLeft}s{atTop}`)
 		task.wait(1)
 	end
 
@@ -213,23 +218,19 @@ local function runRound(): ({ Player }, { Player })
 		connection:Disconnect()
 	end
 
-	local survivors: { Player } = {}
-	for player in round.alive do
-		table.insert(survivors, player)
-	end
-	return survivors, participants
+	return round.finished, participants
 end
 
 local function showResult(survivors: { Player }, participants: { Player })
 	local message
 	if #survivors == 0 then
-		message = "Nobody survived!"
-	elseif #survivors == 1 and #participants > 1 then
-		message = `{survivors[1].DisplayName} wins!`
+		message = "Nobody reached the top!"
+	elseif #participants == 1 then
+		message = `{survivors[1].DisplayName} reached the top!`
 	elseif #survivors == 1 then
-		message = `{survivors[1].DisplayName} survived!`
+		message = `{survivors[1].DisplayName} wins!`
 	else
-		message = `{#survivors} players survived!`
+		message = `{survivors[1].DisplayName} wins! {#survivors} reached the top`
 	end
 	setState(Phase.Ended, Config.END_TIME, message)
 	task.wait(Config.END_TIME)
@@ -245,9 +246,10 @@ local function gameLoop()
 		RoundManager.RoundEnded:Fire(survivors, participants)
 		showResult(survivors, participants)
 		clearRoundAttributes()
-		-- Dead players already respawn in the lobby; bring the survivors back too.
-		for _, player in survivors do
-			if player.Parent then
+		-- Dead players already respawn in the lobby; bring everyone else back too
+		-- (players on the summit, and climbers when the time ran out).
+		for _, player in participants do
+			if player.Parent and getLivingHumanoid(player) then
 				sendToLobby(player)
 			end
 		end
@@ -278,12 +280,40 @@ function RoundManager.isAlive(player: Player): boolean
 	return round ~= nil and round.alive[player] == true
 end
 
--- True if the player took part in the current round, is out, and hasn't been revived yet.
+-- The players still climbing in the current round (empty between rounds).
+function RoundManager.getClimbers(): { Player }
+	local round = currentRound
+	local climbers: { Player } = {}
+	if round then
+		for player in round.alive do
+			table.insert(climbers, player)
+		end
+	end
+	return climbers
+end
+
+-- A climber reached the summit (called by SummitService). Returns their place (1 = first),
+-- or nil if they were not climbing in the current round.
+function RoundManager.finish(player: Player): number?
+	local round = currentRound
+	if not round or not round.alive[player] then
+		return nil
+	end
+	round.alive[player] = nil
+	round.aliveCount -= 1
+	table.insert(round.finished, player)
+	player:SetAttribute(PlayerAttributes.IN_ROUND, false)
+	player:SetAttribute(PlayerAttributes.FINISHED, true)
+	return #round.finished
+end
+
+-- True if the player took part in the current round, is out (not finished), and was not revived yet.
 function RoundManager.canRevive(player: Player): boolean
 	local round = currentRound
 	return round ~= nil
 		and table.find(round.participants, player) ~= nil
 		and not round.alive[player]
+		and table.find(round.finished, player) == nil
 		and player:GetAttribute(PlayerAttributes.REVIVED) ~= true
 end
 

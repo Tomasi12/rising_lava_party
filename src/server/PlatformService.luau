@@ -1,10 +1,13 @@
 --!strict
 -- Builds a new random set of platforms in the arena before every round.
 --
--- 1. Routes: a few climbing paths, each a "random walk" upward. Every next platform is a
---    bit higher (STEP_UP) and a small jump away (GAP), so every route can be climbed
---    from the floor to the top.
--- 2. Extras: more platforms at random places and heights, for variety and shortcuts.
+-- 1. Summit: a big golden platform at the top (step 22). Reaching it finishes the round
+--    for that player. It never crumbles and the lava never reaches it.
+-- 2. Routes: many climbing paths, each a "random walk" upward. Every next platform is a
+--    bit higher (STEP_UP) and a small jump away (GAP). Near the top a route turns toward
+--    the summit and ends one jump away from it. If a route gets stuck, it tries again from
+--    one of its earlier platforms (backtracking), so most routes reach the summit.
+-- 3. Extras: more platforms at random places and heights, for variety and shortcuts.
 --
 -- Rules that keep it playable:
 -- - Platforms stay inside the arena walls (with a margin).
@@ -26,16 +29,26 @@ local THICKNESS = 1 -- platform height in studs
 local EDGE_MARGIN = 4 -- keep platforms this far from the walls
 local HEAD_CLEARANCE = 13 -- min vertical space between overlapping platforms (character ~5 + jump ~7 + margin)
 local SIDE_CLEARANCE = 2 -- extra horizontal room around a platform for that check (shoulders, jump arc)
-local MAX_TRIES = 30 -- attempts to find a valid spot before giving up on a platform
+local MAX_TRIES = 30 -- attempts to find a valid spot for the next platform
+local MAX_BACKTRACKS = 8 -- when stuck, retry from an earlier platform of the route this often
 local SPAWN_KEEP_FREE = 6 -- size of the free area above each spawn point
+local SUMMIT_ABOVE_TOP = 4 -- the summit's top is this much above PLATFORM_TOP_HEIGHT
 
 local LOW_COLOR = Color3.fromRGB(80, 200, 120) -- green near the floor
 local HIGH_COLOR = Color3.fromRGB(170, 90, 255) -- purple at the top
+local SUMMIT_COLOR = Color3.fromRGB(255, 200, 40)
 
 -- A placed (or reserved) square area, used for the overlap checks.
+-- y is the top surface (where players stand); half is half the width.
 type Box = { x: number, y: number, z: number, half: number }
 
+-- Placed boxes, sorted into height bands of HEAD_CLEARANCE studs. A box can only block
+-- boxes in its own band or the bands next to it, so we only check those (fast).
+type Placed = { [number]: { Box } }
+
 local PlatformService = {}
+
+local summitPart: BasePart? = nil
 
 local function getArena(): (BasePart, Folder, Folder)
 	local arena = Workspace:FindFirstChild("Arena")
@@ -49,16 +62,36 @@ local function getArena(): (BasePart, Folder, Folder)
 	return floor, platforms, spawnPoints
 end
 
+local function bandOf(y: number): number
+	return math.floor(y / HEAD_CLEARANCE)
+end
+
+local function addPlaced(placed: Placed, box: Box)
+	local band = bandOf(box.y)
+	local list = placed[band]
+	if not list then
+		list = {}
+		placed[band] = list
+	end
+	table.insert(list, box)
+end
+
 local function overlapsHorizontally(a: Box, b: Box): boolean
 	local reach = a.half + b.half + SIDE_CLEARANCE
 	return math.abs(a.x - b.x) < reach and math.abs(a.z - b.z) < reach
 end
 
 -- True if the box would sit too close above or below an existing one.
-local function isBlocked(candidate: Box, placed: { Box }): boolean
-	for _, other in placed do
-		if math.abs(candidate.y - other.y) < HEAD_CLEARANCE and overlapsHorizontally(candidate, other) then
-			return true
+local function isBlocked(candidate: Box, placed: Placed): boolean
+	local band = bandOf(candidate.y)
+	for b = band - 1, band + 1 do
+		local list = placed[b]
+		if list then
+			for _, other in list do
+				if math.abs(candidate.y - other.y) < HEAD_CLEARANCE and overlapsHorizontally(candidate, other) then
+					return true
+				end
+			end
 		end
 	end
 	return false
@@ -71,7 +104,7 @@ local function isInsideArena(box: Box, floor: BasePart): boolean
 		and math.abs(box.z - floor.Position.Z) + box.half <= limitZ
 end
 
-local function isValid(box: Box, floor: BasePart, placed: { Box }): boolean
+local function isValid(box: Box, floor: BasePart, placed: Placed): boolean
 	return isInsideArena(box, floor) and not isBlocked(box, placed)
 end
 
@@ -84,12 +117,25 @@ local function randomStepUp(rng: Random): number
 	return rng:NextNumber(Config.PLATFORM_STEP_UP_MIN, Config.PLATFORM_STEP_UP_MAX)
 end
 
+-- Horizontal edge-to-edge distance between two squares (negative if they overlap).
+local function edgeGap(a: Box, b: Box): number
+	local gapX = math.abs(a.x - b.x) - (a.half + b.half)
+	local gapZ = math.abs(a.z - b.z) - (a.half + b.half)
+	return math.max(gapX, gapZ)
+end
+
+-- True if a player can jump from `box` onto the summit.
+local function canReachSummit(box: Box, summit: Box): boolean
+	local gap = edgeGap(box, summit)
+	local up = summit.y - box.y
+	return gap >= 0 and gap <= Config.PLATFORM_GAP_MAX and up <= Config.PLATFORM_STEP_UP_MAX
+end
+
 local function createPart(box: Box, floorTop: number, folder: Folder)
 	local part = Instance.new("Part")
 	part.Name = "Platform"
 	part.Anchored = true
 	part.Size = Vector3.new(box.half * 2, THICKNESS, box.half * 2)
-	-- box.y is the top surface (where players stand)
 	part.CFrame = CFrame.new(box.x, box.y - THICKNESS / 2, box.z)
 	part.Material = Enum.Material.SmoothPlastic
 	part.TopSurface = Enum.SurfaceType.Smooth
@@ -98,6 +144,44 @@ local function createPart(box: Box, floorTop: number, folder: Folder)
 	part.Color = LOW_COLOR:Lerp(HIGH_COLOR, progress)
 	part.Parent = folder
 	PlatformCrumble.attach(part) -- falls away shortly after a player lands on it (step 21)
+end
+
+local function createSummit(box: Box, folder: Folder): BasePart
+	local part = Instance.new("Part")
+	part.Name = "Summit"
+	part.Anchored = true
+	part.Size = Vector3.new(box.half * 2, 2, box.half * 2)
+	part.CFrame = CFrame.new(box.x, box.y - 1, box.z)
+	part.Material = Enum.Material.Neon
+	part.Color = SUMMIT_COLOR
+	part.TopSurface = Enum.SurfaceType.Smooth
+	part.BottomSurface = Enum.SurfaceType.Smooth
+
+	local light = Instance.new("PointLight")
+	light.Color = SUMMIT_COLOR
+	light.Range = 40
+	light.Brightness = 3
+	light.Parent = part
+
+	-- A big "FINISH" sign above it, visible from far below.
+	local sign = Instance.new("BillboardGui")
+	sign.Name = "FinishSign"
+	sign.Size = UDim2.new(0, 260, 0, 70)
+	sign.StudsOffset = Vector3.new(0, 12, 0)
+	sign.MaxDistance = 1000
+	local label = Instance.new("TextLabel")
+	label.Size = UDim2.new(1, 0, 1, 0)
+	label.BackgroundTransparency = 1
+	label.Text = "FINISH"
+	label.TextColor3 = SUMMIT_COLOR
+	label.TextStrokeTransparency = 0
+	label.Font = Enum.Font.GothamBlack
+	label.TextScaled = true
+	label.Parent = sign
+	sign.Parent = part
+
+	part.Parent = folder
+	return part
 end
 
 -- A random spot on the floor area, `height` above the floor.
@@ -126,49 +210,96 @@ local function nextBox(rng: Random, from: Box): Box
 	}
 end
 
-local function buildRoute(rng: Random, floor: BasePart, floorTop: number, placed: { Box }, folder: Folder): number
-	local topY = floorTop + Config.PLATFORM_TOP_HEIGHT
+-- Near the top: the next platform goes toward the summit, staying about level just below it.
+-- `spread` (0..1) widens the direction on later tries, to get around obstacles.
+local function approachBox(rng: Random, from: Box, summit: Box, spread: number): Box
+	local half = randomSize(rng) / 2
+	local toSummit = math.atan2(summit.z - from.z, summit.x - from.x)
+	local angle = toSummit + rng:NextNumber(-1, 1) * (0.4 + spread * math.pi)
+	local distance = from.half + half + rng:NextNumber(math.max(Config.PLATFORM_GAP_MIN, 2.5), Config.PLATFORM_GAP_MAX)
+	local y = math.clamp(from.y + rng:NextNumber(-0.5, 1.5), summit.y - 4.5, summit.y - 0.5)
+	return {
+		x = from.x + math.cos(angle) * distance,
+		y = y,
+		z = from.z + math.sin(angle) * distance,
+		half = half,
+	}
+end
+
+-- Builds one route. Returns the number of platforms and whether it reaches the summit.
+local function buildRoute(
+	rng: Random,
+	floor: BasePart,
+	floorTop: number,
+	summit: Box,
+	placed: Placed,
+	folder: Folder
+): (number, boolean)
+	local topY = summit.y - SUMMIT_ABOVE_TOP
 
 	-- First platform: one jump up from the floor.
-	local current: Box? = nil
+	local first: Box? = nil
 	for _ = 1, MAX_TRIES do
 		local candidate = randomBox(rng, floor, floorTop + randomStepUp(rng))
 		if isValid(candidate, floor, placed) then
-			current = candidate
+			first = candidate
 			break
 		end
 	end
+	if not first then
+		return 0, false
+	end
 
-	local count = 0
+	local route: { Box } = {}
+	local current: Box? = first
+	local backtracks = 0
 	while current do
 		local box: Box = current
-		table.insert(placed, box)
+		addPlaced(placed, box)
 		createPart(box, floorTop, folder)
-		count += 1
-		if box.y >= topY then
-			break
+		table.insert(route, box)
+		if canReachSummit(box, summit) and box.y >= topY - Config.PLATFORM_STEP_UP_MAX then
+			return #route, true
 		end
 
+		-- Find the next platform, from the newest one or (when stuck) from an earlier one.
 		current = nil
-		for _ = 1, MAX_TRIES do
-			local candidate = nextBox(rng, box)
-			if isValid(candidate, floor, placed) then
-				current = candidate
+		local from = box
+		while not current do
+			for try = 1, MAX_TRIES do
+				local candidate = if from.y >= topY
+					then approachBox(rng, from, summit, try / MAX_TRIES)
+					else nextBox(rng, from)
+				-- (the summit is in `placed`, so isValid also keeps platforms from touching it)
+				if isValid(candidate, floor, placed) then
+					current = candidate
+					break
+				end
+			end
+			if current then
 				break
 			end
+			backtracks += 1
+			if backtracks > MAX_BACKTRACKS then
+				return #route, false
+			end
+			-- Retry from one of the last few platforms of this route (all of them are reachable).
+			local back = math.min(#route, rng:NextInteger(2, 6))
+			from = route[#route - back + 1]
 		end
 	end
-	return count
+	return #route, false
 end
 
-local function buildExtras(rng: Random, floor: BasePart, floorTop: number, placed: { Box }, folder: Folder): number
+local function buildExtras(rng: Random, floor: BasePart, floorTop: number, placed: Placed, folder: Folder): number
 	local count = 0
+	local topY = floorTop + Config.PLATFORM_TOP_HEIGHT
 	for _ = 1, Config.PLATFORM_EXTRAS do
 		for _ = 1, MAX_TRIES do
-			local height = floorTop + rng:NextNumber(Config.PLATFORM_STEP_UP_MIN, Config.PLATFORM_TOP_HEIGHT)
+			local height = floorTop + rng:NextNumber(Config.PLATFORM_STEP_UP_MIN, topY - floorTop)
 			local candidate = randomBox(rng, floor, height)
 			if isValid(candidate, floor, placed) then
-				table.insert(placed, candidate)
+				addPlaced(placed, candidate)
 				createPart(candidate, floorTop, folder)
 				count += 1
 				break
@@ -185,33 +316,77 @@ function PlatformService.build()
 
 	local rng = Random.new()
 	local floorTop = floor.Position.Y + floor.Size.Y / 2
-	local placed: { Box } = {}
+	local placed: Placed = {}
+
+	-- The summit, in the middle at the top. Routes are not allowed under it (head clearance).
+	local summit: Box = {
+		x = floor.Position.X,
+		y = floorTop + Config.PLATFORM_TOP_HEIGHT + SUMMIT_ABOVE_TOP,
+		z = floor.Position.Z,
+		half = Config.SUMMIT_SIZE / 2,
+	}
+	addPlaced(placed, summit)
+	summitPart = createSummit(summit, folder)
 
 	-- Reserve the space above each spawn point so nobody is teleported into a platform.
 	for _, point in spawnPoints:GetChildren() do
 		if point:IsA("BasePart") then
-			table.insert(placed, { x = point.Position.X, y = floorTop, z = point.Position.Z, half = SPAWN_KEEP_FREE / 2 })
+			addPlaced(placed, { x = point.Position.X, y = floorTop, z = point.Position.Z, half = SPAWN_KEEP_FREE / 2 })
 		end
 	end
 
 	local routeCounts = {}
+	local reached = 0
 	for _ = 1, Config.PLATFORM_PATHS do
-		table.insert(routeCounts, buildRoute(rng, floor, floorTop, placed, folder))
+		local count, reachesSummit = buildRoute(rng, floor, floorTop, summit, placed, folder)
+		table.insert(routeCounts, count)
+		if reachesSummit then
+			reached += 1
+		end
 	end
 	local extras = buildExtras(rng, floor, floorTop, placed, folder)
 
-	print(`Platforms built: routes {table.concat(routeCounts, ", ")} + {extras} extras (event: {EventService.current().id})`)
+	print(
+		`Platforms built: routes {table.concat(routeCounts, ", ")} + {extras} extras; `
+			.. `{reached}/{Config.PLATFORM_PATHS} routes reach the summit (event: {EventService.current().id})`
+	)
+	if reached == 0 then
+		warn("No route reaches the summit this round! Try more PLATFORM_PATHS or a lower PLATFORM_TOP_HEIGHT.")
+	end
+end
+
+-- The summit part of the current round (nil before the first round).
+function PlatformService.getSummit(): BasePart?
+	local part = summitPart
+	if part and part.Parent then
+		return part
+	end
+	return nil
+end
+
+-- True if `position` (e.g. a HumanoidRootPart) is standing on top of the summit.
+function PlatformService.isOnSummit(position: Vector3): boolean
+	local part = PlatformService.getSummit()
+	if not part then
+		return false
+	end
+	local half = part.Size / 2
+	local top = part.Position.Y + half.Y
+	return math.abs(position.X - part.Position.X) <= half.X
+		and math.abs(position.Z - part.Position.Z) <= half.Z
+		and position.Y >= top
+		and position.Y <= top + 12
 end
 
 -- A place to put a revived player (step 17): on the lowest platform whose top is at least
 -- `minY`, so they have time before the lava reaches them. If no platform is that high,
--- the highest platform. Returns nil if there are no platforms.
+-- the highest platform. Never the summit. Returns nil if there are no platforms.
 function PlatformService.findSafeSpot(minY: number): CFrame?
 	local _, folder = getArena()
 	local best: BasePart? = nil
 	local highest: BasePart? = nil
 	for _, child in folder:GetChildren() do
-		if not child:IsA("BasePart") then
+		if not child:IsA("BasePart") or child.Name ~= "Platform" then
 			continue
 		end
 		local top = child.Position.Y + child.Size.Y / 2

@@ -33,3 +33,4 @@ Everything we do to build the game is documented here, one file per step.
 | 19 | [Mobile check and launch checklist](19-mobile-and-launch.md) | to do by you |
 | 20 | [Testing guide 2](20-testing-guide-2.md) | waiting for test in Studio |
 | 21 | [Crumbling platforms](21-crumbling-platforms.md) | in progress (play test) |
+| 22 | [Summit finish, 4x higher tower](22-summit-finish.md) | in progress (play test) |

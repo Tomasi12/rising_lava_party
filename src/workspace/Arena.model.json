@@ -6,7 +6,7 @@
       "className": "Part",
       "properties": {
         "Anchored": true,
-        "Size": [100, 2, 100],
+        "Size": [160, 2, 160],
         "CFrame": { "CFrame": { "position": [300, 1, 0], "orientation": [[1, 0, 0], [0, 1, 0], [0, 0, 1]] } },
         "Color": [0.25, 0.22, 0.22],
         "Material": { "Enum": 788 },
@@ -19,8 +19,8 @@
       "className": "Part",
       "properties": {
         "Anchored": true,
-        "Size": [104, 150, 2],
-        "CFrame": { "CFrame": { "position": [300, 77, -51], "orientation": [[1, 0, 0], [0, 1, 0], [0, 0, 1]] } },
+        "Size": [164, 600, 2],
+        "CFrame": { "CFrame": { "position": [300, 302, -81], "orientation": [[1, 0, 0], [0, 1, 0], [0, 0, 1]] } },
         "Transparency": 0.7,
         "Color": [0.7, 0.85, 1]
       }
@@ -30,8 +30,8 @@
       "className": "Part",
       "properties": {
         "Anchored": true,
-        "Size": [104, 150, 2],
-        "CFrame": { "CFrame": { "position": [300, 77, 51], "orientation": [[1, 0, 0], [0, 1, 0], [0, 0, 1]] } },
+        "Size": [164, 600, 2],
+        "CFrame": { "CFrame": { "position": [300, 302, 81], "orientation": [[1, 0, 0], [0, 1, 0], [0, 0, 1]] } },
         "Transparency": 0.7,
         "Color": [0.7, 0.85, 1]
       }
@@ -41,8 +41,8 @@
       "className": "Part",
       "properties": {
         "Anchored": true,
-        "Size": [2, 150, 100],
-        "CFrame": { "CFrame": { "position": [351, 77, 0], "orientation": [[1, 0, 0], [0, 1, 0], [0, 0, 1]] } },
+        "Size": [2, 600, 160],
+        "CFrame": { "CFrame": { "position": [381, 302, 0], "orientation": [[1, 0, 0], [0, 1, 0], [0, 0, 1]] } },
         "Transparency": 0.7,
         "Color": [0.7, 0.85, 1]
       }
@@ -52,8 +52,8 @@
       "className": "Part",
       "properties": {
         "Anchored": true,
-        "Size": [2, 150, 100],
-        "CFrame": { "CFrame": { "position": [249, 77, 0], "orientation": [[1, 0, 0], [0, 1, 0], [0, 0, 1]] } },
+        "Size": [2, 600, 160],
+        "CFrame": { "CFrame": { "position": [219, 302, 0], "orientation": [[1, 0, 0], [0, 1, 0], [0, 0, 1]] } },
         "Transparency": 0.7,
         "Color": [0.7, 0.85, 1]
       }
