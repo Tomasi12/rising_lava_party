@@ -40,8 +40,9 @@ Rojo sends the code from the PC folder into Studio.
 - ✅ OK if the Rojo window says **Connected**.
 
 ### ☐ 4. Open the 2 windows you need
-- **View → Output** (shows messages and errors)
-- **View → Explorer** (shows everything in the game)
+- **Window → Output** (shows messages and errors)
+- **Window → Explorer** (shows everything in the game)
+- Older Studio versions: these are under the **View** tab instead.
 
 ### ☐ 5. Delete the extra spawn pad
 - In **Explorer**: open **Workspace**, click **SpawnLocation**, press **Delete**.

@@ -23,7 +23,7 @@ No copy-paste of code into Studio.
 4. If Rojo asks to accept changes, accept them: the scripts from `src/` are added to the place.
 
 ## Check that it works
-1. Open the **Output** window: **View** tab → **Output**.
+1. Open the **Output** window: **Window → Output** (older Studio: **View** tab → **Output**).
 2. Press **Play** (F5).
 3. Expected in Output:
    ```

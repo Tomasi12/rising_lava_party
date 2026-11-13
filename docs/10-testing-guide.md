@@ -19,7 +19,7 @@ Time needed: about **20–30 minutes**.
    (Skip if it is already running.)
 2. **Open Studio** and open `RisingLavaParty.rbxl` (the place from step 3).
 3. **Connect Rojo:** **Plugins → Rojo → Connect**. If it asks to accept changes, accept.
-4. **Open the windows you need:** **View → Output** and **View → Explorer**.
+4. **Open the windows you need:** **Window → Output** and **Window → Explorer** (older Studio: **View** tab).
 5. **Delete the template spawn** (optional since the review fix, but cleaner):
    Explorer → **Workspace → SpawnLocation** → Delete. Keep `Baseplate`.
 6. **For step 9 (saving coins)** — do it now so all tests work:
@@ -71,7 +71,7 @@ Close everything with **Cleanup** (Test tab) when done.
 - **Orange warnings:**
   - `Disabled extra SpawnLocation "Workspace.SpawnLocation"` → harmless; delete that spawn to remove the warning.
   - `Loading data for … failed` / `DataStores are not available` → step A6 (publish + API access) is missing.
-- **Script Analysis** window (**View → Script Analysis**): shows type warnings in the scripts. Send them to
+- **Script Analysis** window (**Window → Script Analysis**; older Studio: **View** tab): shows type warnings in the scripts. Send them to
   Claude too — the code was written in `--!strict` mode but has never been type-checked.
 - **Fun check:** Is it too easy/hard? Is the lava too slow/fast? All numbers are in `Config.luau`.
 
