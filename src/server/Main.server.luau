@@ -30,8 +30,8 @@ GamePassService.init() -- after ShopService: unlocks the VIP trail
 ProductService.init() -- Robux developer products (the only ProcessReceipt in the game)
 LeaderboardService.init() -- before DataService: listens to DataService.Loaded
 DataService.init() -- after CoinService and every DataService.Loaded listener
+ThemeService.init() -- first: the map is picked before the event (the event checks the map's gravity)
 EventService.init() -- before PlatformService: the platforms read the round event
-ThemeService.init() -- before PlatformService: the platforms read the map theme
 PlatformService.init()
 LavaService.init()
 SummitService.init()

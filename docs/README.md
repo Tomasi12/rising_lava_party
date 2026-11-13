@@ -35,3 +35,4 @@ Everything we do to build the game is documented here, one file per step.
 | 21 | [Crumbling platforms](21-crumbling-platforms.md) | in progress (play test) |
 | 22 | [Summit finish, 4x higher tower](22-summit-finish.md) | in progress (play test) |
 | 23 | [Map themes: Blocky World, Volcano](23-map-themes.md) | in progress (play test) |
+| 24 | [Map 3: Moon Base (low gravity)](24-moon-map.md) | in progress (play test) |

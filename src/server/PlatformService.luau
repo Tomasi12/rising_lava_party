@@ -28,7 +28,6 @@ local RoundManager = require(script.Parent.RoundManager)
 local ThemeService = require(script.Parent.ThemeService)
 
 local EDGE_MARGIN = 4 -- keep platforms this far from the walls
-local HEAD_ROOM = 12 -- min free space between a platform's top and the bottom of one above it (character ~5 + jump ~7)
 local SIDE_CLEARANCE = 2 -- extra horizontal room around a platform for that check (shoulders, jump arc)
 local MAX_TRIES = 30 -- attempts to find a valid spot for the next platform
 local MAX_BACKTRACKS = 8 -- when stuck, retry from an earlier platform of the route this often
@@ -51,7 +50,25 @@ local summitPart: BasePart? = nil
 
 -- Set at the start of build() from the round's theme.
 local thickness = 1 -- platform thickness in studs
-local headClearance = HEAD_ROOM + thickness -- min vertical distance between the tops of overlapping platforms
+local headClearance = 13 -- min vertical distance between the tops of overlapping platforms (theme head room + thickness)
+local jumpScale = 1 -- multiplies step-up heights and gaps (bigger on the Moon map)
+
+-- Jump distances for the current theme.
+local function stepUpMin(): number
+	return Config.PLATFORM_STEP_UP_MIN * jumpScale
+end
+local function stepUpMax(): number
+	return Config.PLATFORM_STEP_UP_MAX * jumpScale
+end
+local function gapMin(): number
+	return Config.PLATFORM_GAP_MIN * jumpScale
+end
+local function gapMax(): number
+	return Config.PLATFORM_GAP_MAX * jumpScale
+end
+
+-- Low friction for slippery themes: players slide a little after landing.
+local SLIPPERY = PhysicalProperties.new(0.7, 0.05, 0, 100, 1)
 
 local function getArena(): (BasePart, Folder, Folder)
 	local arena = Workspace:FindFirstChild("Arena")
@@ -136,7 +153,7 @@ local function snapped(box: Box): Box
 end
 
 local function randomStepUp(rng: Random): number
-	return rng:NextNumber(Config.PLATFORM_STEP_UP_MIN, Config.PLATFORM_STEP_UP_MAX)
+	return rng:NextNumber(stepUpMin(), stepUpMax())
 end
 
 -- Horizontal edge-to-edge distance between two squares (negative if they overlap).
@@ -149,14 +166,14 @@ end
 -- True if a player can jump from `from` onto `to` (not too far, not too high).
 local function isJumpable(from: Box, to: Box): boolean
 	local gap = edgeGap(from, to)
-	return gap <= Config.PLATFORM_GAP_MAX + 0.01 and to.y - from.y <= Config.PLATFORM_STEP_UP_MAX + 0.01
+	return gap <= gapMax() + 0.01 and to.y - from.y <= stepUpMax() + 0.01
 end
 
 -- True if a player can jump from `box` onto the summit.
 local function canReachSummit(box: Box, summit: Box): boolean
 	local gap = edgeGap(box, summit)
 	local up = summit.y - box.y
-	return gap >= 0 and gap <= Config.PLATFORM_GAP_MAX and up <= Config.PLATFORM_STEP_UP_MAX
+	return gap >= 0 and gap <= gapMax() and up <= stepUpMax()
 end
 
 local function createPart(box: Box, floorTop: number, folder: Folder)
@@ -171,6 +188,9 @@ local function createPart(box: Box, floorTop: number, folder: Folder)
 	local look = ThemeService.current().styleAt(progress)
 	part.Material = look.material
 	part.Color = look.color
+	if ThemeService.current().slippery then
+		part.CustomPhysicalProperties = SLIPPERY
+	end
 	part.Parent = folder
 	PlatformCrumble.attach(part) -- falls away shortly after a player lands on it (step 21)
 end
@@ -230,7 +250,7 @@ end
 local function nextBox(rng: Random, from: Box): Box
 	local half = randomSize(rng) / 2
 	local angle = rng:NextNumber(0, 2 * math.pi)
-	local distance = from.half + half + rng:NextNumber(Config.PLATFORM_GAP_MIN, Config.PLATFORM_GAP_MAX)
+	local distance = from.half + half + rng:NextNumber(gapMin(), gapMax())
 	return snapped({
 		x = from.x + math.cos(angle) * distance,
 		y = from.y + randomStepUp(rng),
@@ -245,7 +265,7 @@ local function approachBox(rng: Random, from: Box, summit: Box, spread: number):
 	local half = randomSize(rng) / 2
 	local toSummit = math.atan2(summit.z - from.z, summit.x - from.x)
 	local angle = toSummit + rng:NextNumber(-1, 1) * (0.4 + spread * math.pi)
-	local distance = from.half + half + rng:NextNumber(math.max(Config.PLATFORM_GAP_MIN, 2.5), Config.PLATFORM_GAP_MAX)
+	local distance = from.half + half + rng:NextNumber(math.max(gapMin(), 2.5), gapMax())
 	local y = math.clamp(from.y + rng:NextNumber(-0.5, 1.5), summit.y - 4.5, summit.y - 0.5)
 	return snapped({
 		x = from.x + math.cos(angle) * distance,
@@ -287,7 +307,7 @@ local function buildRoute(
 		addPlaced(placed, box)
 		createPart(box, floorTop, folder)
 		table.insert(route, box)
-		if canReachSummit(box, summit) and box.y >= topY - Config.PLATFORM_STEP_UP_MAX then
+		if canReachSummit(box, summit) and box.y >= topY - stepUpMax() then
 			return #route, true
 		end
 
@@ -326,7 +346,7 @@ local function buildExtras(rng: Random, floor: BasePart, floorTop: number, place
 	local topY = floorTop + Config.PLATFORM_TOP_HEIGHT
 	for _ = 1, Config.PLATFORM_EXTRAS do
 		for _ = 1, MAX_TRIES do
-			local height = floorTop + rng:NextNumber(Config.PLATFORM_STEP_UP_MIN, topY - floorTop)
+			local height = floorTop + rng:NextNumber(stepUpMin(), topY - floorTop)
 			local candidate = randomBox(rng, floor, height)
 			if isValid(candidate, floor, placed) then
 				addPlaced(placed, candidate)
@@ -347,8 +367,10 @@ function PlatformService.build()
 	local rng = Random.new()
 	local floorTop = floor.Position.Y + floor.Size.Y / 2
 	local placed: Placed = {}
-	thickness = ThemeService.current().platformThickness
-	headClearance = HEAD_ROOM + thickness
+	local theme = ThemeService.current()
+	thickness = theme.platformThickness
+	headClearance = theme.headRoom + thickness
+	jumpScale = theme.jumpScale
 
 	-- The summit, in the middle at the top. Routes are not allowed under it (head clearance).
 	local summit: Box = {

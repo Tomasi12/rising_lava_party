@@ -17,6 +17,12 @@ export type Theme = {
 	gridSnap: number, -- 0 = free placement; 4 = platforms snap to a 4-stud grid (blocky look)
 	platformSizes: { number }?, -- fixed sizes to choose from; nil = any size between Config MIN and MAX
 	styleAt: (progress: number) -> Style, -- look of a platform at height progress 0 (floor) .. 1 (top)
+	slippery: boolean, -- true = low friction, players slide a bit when they land (step 24)
+
+	-- Movement (step 24)
+	gravity: number, -- multiplier for the normal gravity (0.4 = moon)
+	jumpScale: number, -- step-up heights and gaps between platforms are multiplied by this
+	headRoom: number, -- free space above a platform (studs); bigger when you jump higher
 
 	-- Arena
 	floor: Style,
@@ -47,6 +53,10 @@ local list: { Theme } = {
 		platformThickness = 4,
 		gridSnap = 4,
 		platformSizes = { 8, 8, 12 }, -- 8 twice: more often than 12
+		slippery = false,
+		gravity = 1,
+		jumpScale = 1,
+		headRoom = 12,
 		styleAt = function(progress: number): Style
 			if progress < 0.2 then
 				return style(Enum.Material.Cobblestone, 120, 120, 125)
@@ -76,6 +86,10 @@ local list: { Theme } = {
 		platformThickness = 1,
 		gridSnap = 0,
 		platformSizes = nil,
+		slippery = false,
+		gravity = 1,
+		jumpScale = 1,
+		headRoom = 12,
 		styleAt = function(progress: number): Style
 			return { material = Enum.Material.SmoothPlastic, color = VOLCANO_LOW:Lerp(VOLCANO_HIGH, progress) }
 		end,
@@ -88,6 +102,37 @@ local list: { Theme } = {
 		outdoorAmbient = Color3.fromRGB(150, 100, 80),
 		fogColor = Color3.fromRGB(120, 60, 40),
 		fogEnd = 1500,
+	},
+	{
+		-- Low gravity: you float, jump very high and slide a little on landing, so control
+		-- is not perfect. Platforms are farther apart and higher, made for big moon jumps.
+		id = "MoonBase",
+		title = "Moon Base (low gravity!)",
+		weight = 1,
+		platformThickness = 2,
+		gridSnap = 0,
+		platformSizes = nil,
+		slippery = true,
+		gravity = 0.4, -- jumps ~2.5x higher
+		jumpScale = 1.7, -- steps up to ~9 studs, gaps up to ~8.5 studs
+		headRoom = 20,
+		styleAt = function(progress: number): Style
+			if progress < 0.5 then
+				return style(Enum.Material.Slate, 150, 150, 155) -- moon rock
+			elseif progress < 0.85 then
+				return style(Enum.Material.Concrete, 200, 200, 205)
+			end
+			return style(Enum.Material.Metal, 170, 190, 215) -- space station near the top
+		end,
+		floor = style(Enum.Material.Slate, 110, 110, 115),
+		wallColor = Color3.fromRGB(60, 80, 160),
+		wallTransparency = 0.8,
+		clockTime = 0, -- night: dark sky with stars
+		brightness = 1,
+		ambient = Color3.fromRGB(150, 150, 170), -- bright enough to see the platforms at night
+		outdoorAmbient = Color3.fromRGB(170, 170, 190),
+		fogColor = Color3.fromRGB(10, 10, 25),
+		fogEnd = 3000,
 	},
 }
 

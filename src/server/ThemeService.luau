@@ -3,8 +3,9 @@
 -- (floor, walls) and the sky (Lighting). PlatformService reads ThemeService.current()
 -- to build the platforms in the theme's style.
 --
--- init() must run BEFORE PlatformService.init(): RoundPreparing handlers run in the order
--- they were connected. After the round the sky goes back to the lobby look.
+-- init() must run BEFORE EventService.init() and PlatformService.init(): RoundPreparing handlers
+-- run in the order they were connected. After the round the sky goes back to the lobby look.
+-- The map's gravity is applied by EventService (together with the event's gravity).
 
 local Lighting = game:GetService("Lighting")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
