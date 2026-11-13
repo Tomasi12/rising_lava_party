@@ -50,6 +50,42 @@ local function lavaCFrame(floor: BasePart, height: number): CFrame
 	return CFrame.new(floor.Position.X, floorTopY(floor) + height / 2, floor.Position.Z)
 end
 
+-- Glowing embers flying up from the surface, an orange light, and the lava sound.
+local function addEffects(part: BasePart)
+	local embers = Instance.new("ParticleEmitter")
+	embers.Name = "Embers"
+	embers.EmissionDirection = Enum.NormalId.Top
+	embers.Rate = 40
+	embers.Lifetime = NumberRange.new(1.5, 3)
+	embers.Speed = NumberRange.new(4, 10)
+	embers.SpreadAngle = Vector2.new(20, 20)
+	embers.Size = NumberSequence.new({
+		NumberSequenceKeypoint.new(0, 0.6),
+		NumberSequenceKeypoint.new(1, 0),
+	})
+	embers.Color = ColorSequence.new(Color3.fromRGB(255, 200, 60), Color3.fromRGB(255, 60, 0))
+	embers.LightEmission = 1
+	embers.Parent = part
+
+	local light = Instance.new("PointLight")
+	light.Color = Color3.fromRGB(255, 120, 40)
+	light.Range = 40
+	light.Brightness = 2
+	light.Parent = part
+
+	local soundId = Config.SOUNDS.LAVA_LOOP
+	if soundId ~= "" then
+		local sound = Instance.new("Sound")
+		sound.Name = "LavaLoop"
+		sound.SoundId = soundId
+		sound.Looped = true
+		sound.Volume = 0.4
+		sound.RollOffMaxDistance = 150
+		sound.Parent = part
+		sound:Play()
+	end
+end
+
 local function createLava(floor: BasePart): BasePart
 	local part = Instance.new("Part")
 	part.Name = "Lava"
@@ -58,13 +94,13 @@ local function createLava(floor: BasePart): BasePart
 	part.CanTouch = false
 	part.CanQuery = false
 	part.CastShadow = false
-	part.Material = Enum.Material.Neon
-	part.Color = Color3.fromRGB(255, 90, 20)
-	part.Transparency = 0.15
+	part.Material = Enum.Material.CrackedLava
+	part.Color = Color3.fromRGB(255, 110, 30)
 	part.TopSurface = Enum.SurfaceType.Smooth
 	part.BottomSurface = Enum.SurfaceType.Smooth
 	part.Size = Vector3.new(floor.Size.X, START_THICKNESS, floor.Size.Z)
 	part.CFrame = lavaCFrame(floor, START_THICKNESS)
+	addEffects(part)
 	part.Parent = Workspace
 	return part
 end

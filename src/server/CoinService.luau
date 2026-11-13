@@ -12,6 +12,7 @@ local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Config = require(ReplicatedStorage.Shared.Config)
+local Net = require(script.Parent.Net)
 local RoundManager = require(script.Parent.RoundManager)
 
 local CoinService = {}
@@ -58,6 +59,7 @@ local function rewardSurvivors(survivors: { Player }, participants: { Player })
 				reward += Config.COINS_WIN_BONUS
 			end
 			CoinService.add(player, reward)
+			Net.notify(player, `+{reward} coins`, "coins")
 		end
 	end
 end

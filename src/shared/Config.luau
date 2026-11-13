@@ -30,6 +30,19 @@ local Config = {
 	-- Coins
 	COINS_SURVIVE = 10, -- every player alive at the end of a round
 	COINS_WIN_BONUS = 15, -- extra for the last player standing (only when 2+ players took part)
+
+	-- Sounds (step 11). "rbxasset://sounds/..." are sounds built into Roblox.
+	-- To use a sound from the Creator Store, paste its id like "rbxassetid://1234567890".
+	-- An empty string "" means no sound.
+	SOUNDS = table.freeze({
+		COUNTDOWN_TICK = "rbxasset://sounds/clickfast.wav", -- last 5 seconds before a round
+		ROUND_START = "rbxasset://sounds/electronicpingshort.wav",
+		VICTORY = "rbxasset://sounds/victory.wav", -- you survived the round
+		COINS = "rbxasset://sounds/electronicpingshort.wav", -- coins received
+		BUTTON = "rbxasset://sounds/button.wav", -- UI clicks
+		ERROR = "rbxasset://sounds/uuhhh.mp3", -- e.g. not enough coins
+		LAVA_LOOP = "", -- looping lava sound while it rises (find one in the Creator Store)
+	}),
 }
 
 return table.freeze(Config)

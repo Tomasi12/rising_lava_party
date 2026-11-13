@@ -10,13 +10,18 @@
 --
 -- RoundPreparing handlers must NOT yield (no task.wait / WaitForChild on missing objects):
 -- Signal:Fire runs each handler immediately until it yields, so a handler that doesn't
--- yield is guaranteed to finish before the teleport.
+-- yield is guaranteed to finish before the teleport. Handlers run in the order they
+-- were connected (the order of the init() calls in Main.server.luau).
+--
+-- Each player gets attributes (see shared/PlayerAttributes) so clients know who is
+-- still in the round: InRound, WasInRound, RevivedThisRound.
 
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Workspace = game:GetService("Workspace")
 
 local Config = require(ReplicatedStorage.Shared.Config)
+local PlayerAttributes = require(ReplicatedStorage.Shared.PlayerAttributes)
 local RoundState = require(ReplicatedStorage.Shared.RoundState)
 local Signal = require(script.Parent.Signal)
 
@@ -28,7 +33,16 @@ RoundManager.RoundPreparing = Signal.new() -- ()
 RoundManager.RoundStarted = Signal.new() -- (participants: {Player})
 RoundManager.RoundEnded = Signal.new() -- (survivors: {Player}, participants: {Player})
 
+-- The round being played right now (nil between rounds).
+type Round = {
+	participants: { Player },
+	alive: { [Player]: boolean },
+	aliveCount: number,
+	connections: { RBXScriptConnection },
+}
+
 local stateFolder: Folder? = nil
+local currentRound: Round? = nil
 
 -- Writes the current state where every client can read it.
 local function setState(phase: string, timeLeft: number, message: string)
@@ -87,6 +101,36 @@ local function sendToLobby(player: Player)
 	teleport(player, getLobbySpawn().CFrame + offset)
 end
 
+local function knockOut(round: Round, player: Player)
+	if round.alive[player] then
+		round.alive[player] = nil
+		round.aliveCount -= 1
+		player:SetAttribute(PlayerAttributes.IN_ROUND, false)
+	end
+end
+
+-- Marks the player as alive in the round and watches their humanoid.
+local function track(round: Round, player: Player, humanoid: Humanoid)
+	if round.alive[player] then
+		return
+	end
+	round.alive[player] = true
+	round.aliveCount += 1
+	player:SetAttribute(PlayerAttributes.IN_ROUND, true)
+	player:SetAttribute(PlayerAttributes.WAS_IN_ROUND, true)
+	table.insert(round.connections, humanoid.Died:Connect(function()
+		knockOut(round, player)
+	end))
+end
+
+local function clearRoundAttributes()
+	for _, player in Players:GetPlayers() do
+		player:SetAttribute(PlayerAttributes.IN_ROUND, false)
+		player:SetAttribute(PlayerAttributes.WAS_IN_ROUND, false)
+		player:SetAttribute(PlayerAttributes.REVIVED, false)
+	end
+end
+
 -- Counts down in the lobby. Returns when a round should start.
 -- If players leave and there are too few, it goes back to waiting.
 local function runIntermission()
@@ -138,28 +182,17 @@ local function runRound(): ({ Player }, { Player })
 	end
 
 	-- Track who is still alive. A player is out when they die or leave the game.
-	local alive: { [Player]: boolean } = {}
-	local aliveCount = 0
-	local connections: { RBXScriptConnection } = {}
-
-	local function knockOut(player: Player)
-		if alive[player] then
-			alive[player] = nil
-			aliveCount -= 1
-		end
-	end
-
+	local round: Round = { participants = participants, alive = {}, aliveCount = 0, connections = {} }
 	for _, player in participants do
 		local humanoid = getLivingHumanoid(player)
 		if humanoid then
-			alive[player] = true
-			aliveCount += 1
-			table.insert(connections, humanoid.Died:Connect(function()
-				knockOut(player)
-			end))
+			track(round, player, humanoid)
 		end
 	end
-	table.insert(connections, Players.PlayerRemoving:Connect(knockOut))
+	table.insert(round.connections, Players.PlayerRemoving:Connect(function(player)
+		knockOut(round, player)
+	end))
+	currentRound = round
 
 	RoundManager.RoundStarted:Fire(participants)
 
@@ -168,19 +201,20 @@ local function runRound(): ({ Player }, { Player })
 	local playersNeededToContinue = if #participants > 1 then 2 else 1
 
 	for timeLeft = Config.ROUND_TIME, 1, -1 do
-		if aliveCount < playersNeededToContinue then
+		if round.aliveCount < playersNeededToContinue then
 			break
 		end
-		setState(Phase.Round, timeLeft, `Survive! {timeLeft}s · {aliveCount} alive`)
+		setState(Phase.Round, timeLeft, `Survive! {timeLeft}s · {round.aliveCount} alive`)
 		task.wait(1)
 	end
 
-	for _, connection in connections do
+	currentRound = nil
+	for _, connection in round.connections do
 		connection:Disconnect()
 	end
 
 	local survivors: { Player } = {}
-	for player in alive do
+	for player in round.alive do
 		table.insert(survivors, player)
 	end
 	return survivors, participants
@@ -191,11 +225,11 @@ local function showResult(survivors: { Player }, participants: { Player })
 	if #survivors == 0 then
 		message = "Nobody survived!"
 	elseif #survivors == 1 and #participants > 1 then
-		message = `{survivors[1].DisplayName} wins! +{Config.COINS_SURVIVE + Config.COINS_WIN_BONUS} coins`
+		message = `{survivors[1].DisplayName} wins!`
 	elseif #survivors == 1 then
-		message = `{survivors[1].DisplayName} survived! +{Config.COINS_SURVIVE} coins`
+		message = `{survivors[1].DisplayName} survived!`
 	else
-		message = `{#survivors} players survived! +{Config.COINS_SURVIVE} coins`
+		message = `{#survivors} players survived!`
 	end
 	setState(Phase.Ended, Config.END_TIME, message)
 	task.wait(Config.END_TIME)
@@ -210,6 +244,7 @@ local function gameLoop()
 		end
 		RoundManager.RoundEnded:Fire(survivors, participants)
 		showResult(survivors, participants)
+		clearRoundAttributes()
 		-- Dead players already respawn in the lobby; bring the survivors back too.
 		for _, player in survivors do
 			if player.Parent then
@@ -232,6 +267,39 @@ local function disableOtherSpawns()
 	end
 end
 
+-- True while a round is being played.
+function RoundManager.isRoundActive(): boolean
+	return currentRound ~= nil
+end
+
+-- True if the player is still alive in the current round.
+function RoundManager.isAlive(player: Player): boolean
+	local round = currentRound
+	return round ~= nil and round.alive[player] == true
+end
+
+-- True if the player took part in the current round, is out, and hasn't been revived yet.
+function RoundManager.canRevive(player: Player): boolean
+	local round = currentRound
+	return round ~= nil
+		and table.find(round.participants, player) ~= nil
+		and not round.alive[player]
+		and player:GetAttribute(PlayerAttributes.REVIVED) ~= true
+end
+
+-- Puts a revived player (with a new, living character already placed in the arena)
+-- back into the current round. Returns false if that is no longer possible.
+function RoundManager.readmit(player: Player): boolean
+	local round = currentRound
+	local humanoid = getLivingHumanoid(player)
+	if not round or not humanoid or not RoundManager.canRevive(player) then
+		return false
+	end
+	player:SetAttribute(PlayerAttributes.REVIVED, true)
+	track(round, player, humanoid)
+	return true
+end
+
 -- Call once from the server entry point.
 function RoundManager.start()
 	assert(stateFolder == nil, "RoundManager.start() was called twice")
@@ -244,6 +312,14 @@ function RoundManager.start()
 	setState(Phase.Waiting, 0, "Waiting for players...")
 
 	task.spawn(gameLoop)
+end
+
+-- Sets an extra attribute on the RoundState folder (e.g. the round event, step 12).
+function RoundManager.setStateAttribute(name: string, value: any)
+	local folder = stateFolder
+	if folder then
+		folder:SetAttribute(name, value)
+	end
 end
 
 return RoundManager
