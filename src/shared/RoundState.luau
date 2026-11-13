@@ -16,6 +16,7 @@ local RoundState = {
 	ATTR_PHASE = "Phase", -- string, one of Phase
 	ATTR_TIME_LEFT = "TimeLeft", -- number, seconds
 	ATTR_MESSAGE = "Message", -- string, text shown at the top of the screen
+	ATTR_EVENT = "Event", -- string, id of the round event (shared/RoundEvents), step 12
 
 	Phase = Phase,
 }

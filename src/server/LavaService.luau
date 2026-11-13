@@ -13,6 +13,7 @@ local TweenService = game:GetService("TweenService")
 local Workspace = game:GetService("Workspace")
 
 local Config = require(ReplicatedStorage.Shared.Config)
+local EventService = require(script.Parent.EventService)
 local RoundManager = require(script.Parent.RoundManager)
 
 local START_THICKNESS = 0.2 -- studs; the thin layer visible before the lava starts rising
@@ -158,7 +159,8 @@ function LavaService.start()
 			return -- the round already ended
 		end
 		local height = Config.LAVA_MAX_HEIGHT
-		local duration = (height - START_THICKNESS) / Config.LAVA_RISE_SPEED
+		local speed = Config.LAVA_RISE_SPEED * EventService.current().lavaSpeed
+		local duration = (height - START_THICKNESS) / speed
 		local tween = TweenService:Create(part, TweenInfo.new(duration, Enum.EasingStyle.Linear), {
 			Size = Vector3.new(floor.Size.X, height, floor.Size.Z),
 			CFrame = lavaCFrame(floor, height),

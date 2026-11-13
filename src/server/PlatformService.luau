@@ -18,6 +18,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Workspace = game:GetService("Workspace")
 
 local Config = require(ReplicatedStorage.Shared.Config)
+local EventService = require(script.Parent.EventService)
 local RoundManager = require(script.Parent.RoundManager)
 
 local THICKNESS = 1 -- platform height in studs
@@ -74,7 +75,8 @@ local function isValid(box: Box, floor: BasePart, placed: { Box }): boolean
 end
 
 local function randomSize(rng: Random): number
-	return rng:NextNumber(Config.PLATFORM_MIN_SIZE, Config.PLATFORM_MAX_SIZE)
+	local scale = EventService.current().platformSize -- smaller in the Tiny Platforms event
+	return rng:NextNumber(Config.PLATFORM_MIN_SIZE, Config.PLATFORM_MAX_SIZE) * scale
 end
 
 local function randomStepUp(rng: Random): number
@@ -196,7 +198,7 @@ function PlatformService.build()
 	end
 	local extras = buildExtras(rng, floor, floorTop, placed, folder)
 
-	print(`Platforms built: routes {table.concat(routeCounts, ", ")} + {extras} extras`)
+	print(`Platforms built: routes {table.concat(routeCounts, ", ")} + {extras} extras (event: {EventService.current().id})`)
 end
 
 -- Call once from the server entry point, before RoundManager.start().

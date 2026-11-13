@@ -16,6 +16,9 @@ local Config = {
 	LAVA_RISE_SPEED = 1.2, -- studs per second (after 85 s the lava is ~100 studs high)
 	LAVA_MAX_HEIGHT = 140, -- the lava stops rising at this height above the arena floor
 
+	-- Round events (step 12): Fast Lava, Low Gravity, Tiny Platforms. See shared/RoundEvents.luau.
+	EVENTS_ENABLED = true,
+
 	-- Random platforms (built new for every round). Heights and distances in studs.
 	PLATFORM_PATHS = 3, -- number of climbing routes from the floor to the top
 	PLATFORM_EXTRAS = 20, -- extra platforms placed anywhere, for variety and shortcuts
