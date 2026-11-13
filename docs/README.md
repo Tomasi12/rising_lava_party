@@ -2,6 +2,9 @@
 
 Everything we do to build the game is documented here, one file per step.
 
+## 👉 Start here
+- [**What to do now**](00-what-to-do-now.md): your current to-do list with step-by-step instructions
+
 ## Plans
 - [Plan for 2026-11-12](plan-2026-11-12.md) — the 10 points for the first prototype
 
