@@ -26,7 +26,13 @@ Rojo sends the code from the PC folder into Studio.
 
 ### ☐ 2. Open the game in Studio
 - Open **Roblox Studio**.
-- Open the file **RisingLavaParty.rbxl** (the place from step 3).
+- **If the file already exists:** open `C:\AI_Claude\Roblox\rising_lava_party\RisingLavaParty.rbxl`.
+- **If not (first time):**
+  1. Click **New → Baseplate**.
+  2. **File → Save to File As…**
+  3. Go to `C:\AI_Claude\Roblox\rising_lava_party`, name it `RisingLavaParty.rbxl` → **Save**.
+  - Git ignores `.rbxl` files, so the file stays only on your PC.
+  - Nothing is lost by starting new: Rojo puts all code, the lobby and the arena into it at step 3.
 
 ### ☐ 3. Connect Studio to Rojo
 - Top menu: **Plugins → Rojo → Connect**.
