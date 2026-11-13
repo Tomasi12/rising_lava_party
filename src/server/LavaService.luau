@@ -125,6 +125,12 @@ local function killPlayersInLava(part: BasePart, floor: BasePart)
 	end
 end
 
+-- Height (world Y) of the lava surface, or nil when there is no lava (between rounds).
+function LavaService.surfaceY(): number?
+	local part = lavaPart
+	return if part then lavaTopY(part) else nil
+end
+
 function LavaService.stop()
 	generation += 1
 	if riseTween then

@@ -201,6 +201,32 @@ function PlatformService.build()
 	print(`Platforms built: routes {table.concat(routeCounts, ", ")} + {extras} extras (event: {EventService.current().id})`)
 end
 
+-- A place to put a revived player (step 17): on the lowest platform whose top is at least
+-- `minY`, so they have time before the lava reaches them. If no platform is that high,
+-- the highest platform. Returns nil if there are no platforms.
+function PlatformService.findSafeSpot(minY: number): CFrame?
+	local _, folder = getArena()
+	local best: BasePart? = nil
+	local highest: BasePart? = nil
+	for _, child in folder:GetChildren() do
+		if not child:IsA("BasePart") then
+			continue
+		end
+		local top = child.Position.Y + child.Size.Y / 2
+		if not highest or top > highest.Position.Y + highest.Size.Y / 2 then
+			highest = child
+		end
+		if top >= minY and (not best or top < best.Position.Y + best.Size.Y / 2) then
+			best = child
+		end
+	end
+	local chosen = best or highest
+	if not chosen then
+		return nil
+	end
+	return CFrame.new(chosen.Position + Vector3.new(0, chosen.Size.Y / 2 + 3, 0))
+end
+
 -- Call once from the server entry point, before RoundManager.start().
 function PlatformService.init()
 	RoundManager.RoundPreparing:Connect(function()

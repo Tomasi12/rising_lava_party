@@ -12,6 +12,7 @@ local EventService = require(script.Parent.EventService)
 local GamePassService = require(script.Parent.GamePassService)
 local LavaService = require(script.Parent.LavaService)
 local PlatformService = require(script.Parent.PlatformService)
+local ProductService = require(script.Parent.ProductService)
 local RoundManager = require(script.Parent.RoundManager)
 local ShopService = require(script.Parent.ShopService)
 
@@ -23,6 +24,7 @@ BadgeService.init()
 DailyRewardService.init() -- before DataService: listens to DataService.Loaded
 ShopService.init() -- before DataService: listens to DataService.Loaded
 GamePassService.init() -- after ShopService: unlocks the VIP trail
+ProductService.init() -- Robux developer products (the only ProcessReceipt in the game)
 DataService.init() -- after CoinService and every DataService.Loaded listener
 EventService.init() -- before PlatformService: the platforms read the round event
 PlatformService.init()

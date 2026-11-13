@@ -46,10 +46,15 @@ local Config = {
 		VIP = 0, -- step 16: gold trail, VIP tag, 1.5x coins
 	}),
 	PRODUCTS = table.freeze({
-		REVIVE = 0, -- step 17: back into the round once
+		REVIVE = 0, -- step 17: back into the round once (suggested 25 Robux)
 		COINS_500 = 0, -- step 17
 		COINS_2000 = 0, -- step 17
 	}),
+
+	-- Revive (step 17): put the revived player at least this many studs above the lava.
+	REVIVE_HEIGHT_ABOVE_LAVA = 15,
+	-- If a Revive is bought but the round already ended, the player gets these coins instead.
+	REVIVE_REFUND_COINS = 100,
 
 	-- Badges (step 14). Create them on create.roblox.com and paste the badge IDs here.
 	-- 0 = badge not created yet (it is simply not awarded).

@@ -3,7 +3,7 @@
 -- a player who is still alive. Buttons: ◀ ▶ switch player, ✕ stop watching (until the next round).
 --
 -- Who is alive comes from the InRound attribute the server sets on every player.
--- The bar also hosts the Revive button (step 17), which RevivePrompt.client adds to `SpectateGui.Bar`.
+-- The Revive button (step 17) sits just above this bar (RevivePrompt.client).
 
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
