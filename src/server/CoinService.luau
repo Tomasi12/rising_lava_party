@@ -105,7 +105,7 @@ local function rewardSurvivors(survivors: { Player }, participants: { Player })
 				reward += Config.COINS_WIN_BONUS
 			end
 			local multiplier = rewardMultiplier(player)
-			reward *= multiplier
+			reward = math.floor(reward * multiplier)
 			CoinService.add(player, reward)
 			Net.notify(player, if multiplier > 1 then `+{reward} coins (x{multiplier})` else `+{reward} coins`, "coins")
 

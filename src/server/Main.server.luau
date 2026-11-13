@@ -9,6 +9,7 @@ local CoinService = require(script.Parent.CoinService)
 local DailyRewardService = require(script.Parent.DailyRewardService)
 local DataService = require(script.Parent.DataService)
 local EventService = require(script.Parent.EventService)
+local GamePassService = require(script.Parent.GamePassService)
 local LavaService = require(script.Parent.LavaService)
 local PlatformService = require(script.Parent.PlatformService)
 local RoundManager = require(script.Parent.RoundManager)
@@ -21,6 +22,7 @@ CoinService.init()
 BadgeService.init()
 DailyRewardService.init() -- before DataService: listens to DataService.Loaded
 ShopService.init() -- before DataService: listens to DataService.Loaded
+GamePassService.init() -- after ShopService: unlocks the VIP trail
 DataService.init() -- after CoinService and every DataService.Loaded listener
 EventService.init() -- before PlatformService: the platforms read the round event
 PlatformService.init()
