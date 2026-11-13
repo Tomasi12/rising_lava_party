@@ -45,8 +45,13 @@ layout.Parent = list
 gui.Parent = player:WaitForChild("PlayerGui")
 
 local counter = 0
+local visible: { [string]: boolean } = {} -- texts on screen right now (no duplicates)
 
 local function show(text: string, kind: string)
+	if visible[text] then
+		return -- the same message is already showing (e.g. a button clicked several times)
+	end
+	visible[text] = true
 	counter += 1
 	local label = Instance.new("TextLabel")
 	label.LayoutOrder = counter
@@ -79,6 +84,7 @@ local function show(text: string, kind: string)
 		TweenService:Create(label, fade, { BackgroundTransparency = 1, TextTransparency = 1 }):Play()
 		task.wait(0.4)
 		label:Destroy()
+		visible[text] = nil
 	end)
 end
 
