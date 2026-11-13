@@ -7,6 +7,7 @@ Everything we do to build the game is documented here, one file per step.
 
 ## Plans
 - [Plan for 2026-11-12](plan-2026-11-12.md) — the 10 points for the first prototype
+- [Plan for 2026-11-13](plan-2026-11-13.md) — steps 11–20: fun, shop, Robux, retention, launch
 
 ## Steps
 | # | Step | Status |
