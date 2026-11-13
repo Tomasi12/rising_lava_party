@@ -7,6 +7,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local RoundEvents = require(ReplicatedStorage.Shared.RoundEvents)
 local RoundState = require(ReplicatedStorage.Shared.RoundState)
+local Themes = require(ReplicatedStorage.Shared.Themes)
 
 local player = Players.LocalPlayer
 local stateFolder = ReplicatedStorage:WaitForChild(RoundState.FOLDER_NAME)
@@ -55,7 +56,7 @@ eventCorner.CornerRadius = UDim.new(0, 8)
 eventCorner.Parent = eventLabel
 
 local eventSizeLimit = Instance.new("UISizeConstraint")
-eventSizeLimit.MaxSize = Vector2.new(420, 30)
+eventSizeLimit.MaxSize = Vector2.new(560, 30)
 eventSizeLimit.Parent = eventLabel
 
 gui.Parent = player:WaitForChild("PlayerGui")
@@ -69,8 +70,17 @@ local function refreshEvent()
 	local phase = stateFolder:GetAttribute(RoundState.ATTR_PHASE)
 	local eventId = stateFolder:GetAttribute(RoundState.ATTR_EVENT)
 	local event = if typeof(eventId) == "string" then RoundEvents.byId[eventId] else nil
-	if phase == RoundState.Phase.Round and event and event.title ~= "" then
-		eventLabel.Text = `⚡ {event.title} {event.description}`
+	local themeId = stateFolder:GetAttribute(RoundState.ATTR_THEME)
+	local theme = if typeof(themeId) == "string" then Themes.byId[themeId] else nil
+	local parts: { string } = {}
+	if theme then
+		table.insert(parts, `Map: {theme.title}`)
+	end
+	if event and event.title ~= "" then
+		table.insert(parts, `⚡ {event.title} {event.description}`)
+	end
+	if phase == RoundState.Phase.Round and #parts > 0 then
+		eventLabel.Text = table.concat(parts, "  ·  ")
 		eventLabel.Visible = true
 	else
 		eventLabel.Visible = false
@@ -80,5 +90,6 @@ end
 stateFolder:GetAttributeChangedSignal(RoundState.ATTR_MESSAGE):Connect(refresh)
 stateFolder:GetAttributeChangedSignal(RoundState.ATTR_PHASE):Connect(refreshEvent)
 stateFolder:GetAttributeChangedSignal(RoundState.ATTR_EVENT):Connect(refreshEvent)
+stateFolder:GetAttributeChangedSignal(RoundState.ATTR_THEME):Connect(refreshEvent)
 refresh()
 refreshEvent()

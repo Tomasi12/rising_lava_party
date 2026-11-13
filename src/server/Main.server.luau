@@ -17,6 +17,7 @@ local ProductService = require(script.Parent.ProductService)
 local RoundManager = require(script.Parent.RoundManager)
 local ShopService = require(script.Parent.ShopService)
 local SummitService = require(script.Parent.SummitService)
+local ThemeService = require(script.Parent.ThemeService)
 
 print(`{Config.GAME_NAME} server started`)
 
@@ -30,6 +31,7 @@ ProductService.init() -- Robux developer products (the only ProcessReceipt in th
 LeaderboardService.init() -- before DataService: listens to DataService.Loaded
 DataService.init() -- after CoinService and every DataService.Loaded listener
 EventService.init() -- before PlatformService: the platforms read the round event
+ThemeService.init() -- before PlatformService: the platforms read the map theme
 PlatformService.init()
 LavaService.init()
 SummitService.init()

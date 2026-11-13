@@ -8,10 +8,11 @@
 --    the summit and ends one jump away from it. If a route gets stuck, it tries again from
 --    one of its earlier platforms (backtracking), so most routes reach the summit.
 -- 3. Extras: more platforms at random places and heights, for variety and shortcuts.
+-- The look (thickness, grid, sizes, materials) comes from the round's map theme (step 23).
 --
 -- Rules that keep it playable:
 -- - Platforms stay inside the arena walls (with a margin).
--- - No platform is placed directly above another one with less than HEAD_CLEARANCE
+-- - No platform is placed directly above another one with less than headClearance
 --   between them, so players never bump their head when jumping.
 -- - The area above the arena spawn points is kept free near the floor.
 --
@@ -24,31 +25,33 @@ local Config = require(ReplicatedStorage.Shared.Config)
 local EventService = require(script.Parent.EventService)
 local PlatformCrumble = require(script.Parent.PlatformCrumble)
 local RoundManager = require(script.Parent.RoundManager)
+local ThemeService = require(script.Parent.ThemeService)
 
-local THICKNESS = 1 -- platform height in studs
 local EDGE_MARGIN = 4 -- keep platforms this far from the walls
-local HEAD_CLEARANCE = 13 -- min vertical space between overlapping platforms (character ~5 + jump ~7 + margin)
+local HEAD_ROOM = 12 -- min free space between a platform's top and the bottom of one above it (character ~5 + jump ~7)
 local SIDE_CLEARANCE = 2 -- extra horizontal room around a platform for that check (shoulders, jump arc)
 local MAX_TRIES = 30 -- attempts to find a valid spot for the next platform
 local MAX_BACKTRACKS = 8 -- when stuck, retry from an earlier platform of the route this often
 local SPAWN_KEEP_FREE = 6 -- size of the free area above each spawn point
 local SUMMIT_ABOVE_TOP = 4 -- the summit's top is this much above PLATFORM_TOP_HEIGHT
 
-local LOW_COLOR = Color3.fromRGB(80, 200, 120) -- green near the floor
-local HIGH_COLOR = Color3.fromRGB(170, 90, 255) -- purple at the top
 local SUMMIT_COLOR = Color3.fromRGB(255, 200, 40)
 
 -- A placed (or reserved) square area, used for the overlap checks.
 -- y is the top surface (where players stand); half is half the width.
 type Box = { x: number, y: number, z: number, half: number }
 
--- Placed boxes, sorted into height bands of HEAD_CLEARANCE studs. A box can only block
+-- Placed boxes, sorted into height bands of headClearance studs. A box can only block
 -- boxes in its own band or the bands next to it, so we only check those (fast).
 type Placed = { [number]: { Box } }
 
 local PlatformService = {}
 
 local summitPart: BasePart? = nil
+
+-- Set at the start of build() from the round's theme.
+local thickness = 1 -- platform thickness in studs
+local headClearance = HEAD_ROOM + thickness -- min vertical distance between the tops of overlapping platforms
 
 local function getArena(): (BasePart, Folder, Folder)
 	local arena = Workspace:FindFirstChild("Arena")
@@ -63,7 +66,7 @@ local function getArena(): (BasePart, Folder, Folder)
 end
 
 local function bandOf(y: number): number
-	return math.floor(y / HEAD_CLEARANCE)
+	return math.floor(y / headClearance)
 end
 
 local function addPlaced(placed: Placed, box: Box)
@@ -88,7 +91,7 @@ local function isBlocked(candidate: Box, placed: Placed): boolean
 		local list = placed[b]
 		if list then
 			for _, other in list do
-				if math.abs(candidate.y - other.y) < HEAD_CLEARANCE and overlapsHorizontally(candidate, other) then
+				if math.abs(candidate.y - other.y) < headClearance and overlapsHorizontally(candidate, other) then
 					return true
 				end
 			end
@@ -110,7 +113,26 @@ end
 
 local function randomSize(rng: Random): number
 	local scale = EventService.current().platformSize -- smaller in the Tiny Platforms event
+	local sizes = ThemeService.current().platformSizes
+	if sizes then
+		return sizes[rng:NextInteger(1, #sizes)] * scale
+	end
 	return rng:NextNumber(Config.PLATFORM_MIN_SIZE, Config.PLATFORM_MAX_SIZE) * scale
+end
+
+-- Blocky themes: put the platform on the theme's grid (x and z only; heights stay free,
+-- because a 4-stud grid in height would make some steps too high to jump).
+local function snapped(box: Box): Box
+	local grid = ThemeService.current().gridSnap
+	if grid <= 0 then
+		return box
+	end
+	return {
+		x = math.round(box.x / grid) * grid,
+		y = box.y,
+		z = math.round(box.z / grid) * grid,
+		half = box.half,
+	}
 end
 
 local function randomStepUp(rng: Random): number
@@ -124,6 +146,12 @@ local function edgeGap(a: Box, b: Box): number
 	return math.max(gapX, gapZ)
 end
 
+-- True if a player can jump from `from` onto `to` (not too far, not too high).
+local function isJumpable(from: Box, to: Box): boolean
+	local gap = edgeGap(from, to)
+	return gap <= Config.PLATFORM_GAP_MAX + 0.01 and to.y - from.y <= Config.PLATFORM_STEP_UP_MAX + 0.01
+end
+
 -- True if a player can jump from `box` onto the summit.
 local function canReachSummit(box: Box, summit: Box): boolean
 	local gap = edgeGap(box, summit)
@@ -135,13 +163,14 @@ local function createPart(box: Box, floorTop: number, folder: Folder)
 	local part = Instance.new("Part")
 	part.Name = "Platform"
 	part.Anchored = true
-	part.Size = Vector3.new(box.half * 2, THICKNESS, box.half * 2)
-	part.CFrame = CFrame.new(box.x, box.y - THICKNESS / 2, box.z)
-	part.Material = Enum.Material.SmoothPlastic
+	part.Size = Vector3.new(box.half * 2, thickness, box.half * 2)
+	part.CFrame = CFrame.new(box.x, box.y - thickness / 2, box.z)
 	part.TopSurface = Enum.SurfaceType.Smooth
 	part.BottomSurface = Enum.SurfaceType.Smooth
 	local progress = math.clamp((box.y - floorTop) / Config.PLATFORM_TOP_HEIGHT, 0, 1)
-	part.Color = LOW_COLOR:Lerp(HIGH_COLOR, progress)
+	local look = ThemeService.current().styleAt(progress)
+	part.Material = look.material
+	part.Color = look.color
 	part.Parent = folder
 	PlatformCrumble.attach(part) -- falls away shortly after a player lands on it (step 21)
 end
@@ -189,12 +218,12 @@ local function randomBox(rng: Random, floor: BasePart, height: number): Box
 	local half = randomSize(rng) / 2
 	local limitX = floor.Size.X / 2 - EDGE_MARGIN - half
 	local limitZ = floor.Size.Z / 2 - EDGE_MARGIN - half
-	return {
+	return snapped({
 		x = floor.Position.X + rng:NextNumber(-limitX, limitX),
 		y = height,
 		z = floor.Position.Z + rng:NextNumber(-limitZ, limitZ),
 		half = half,
-	}
+	})
 end
 
 -- The next platform on a route: higher, and a jumpable gap away in a random direction.
@@ -202,12 +231,12 @@ local function nextBox(rng: Random, from: Box): Box
 	local half = randomSize(rng) / 2
 	local angle = rng:NextNumber(0, 2 * math.pi)
 	local distance = from.half + half + rng:NextNumber(Config.PLATFORM_GAP_MIN, Config.PLATFORM_GAP_MAX)
-	return {
+	return snapped({
 		x = from.x + math.cos(angle) * distance,
 		y = from.y + randomStepUp(rng),
 		z = from.z + math.sin(angle) * distance,
 		half = half,
-	}
+	})
 end
 
 -- Near the top: the next platform goes toward the summit, staying about level just below it.
@@ -218,12 +247,12 @@ local function approachBox(rng: Random, from: Box, summit: Box, spread: number):
 	local angle = toSummit + rng:NextNumber(-1, 1) * (0.4 + spread * math.pi)
 	local distance = from.half + half + rng:NextNumber(math.max(Config.PLATFORM_GAP_MIN, 2.5), Config.PLATFORM_GAP_MAX)
 	local y = math.clamp(from.y + rng:NextNumber(-0.5, 1.5), summit.y - 4.5, summit.y - 0.5)
-	return {
+	return snapped({
 		x = from.x + math.cos(angle) * distance,
 		y = y,
 		z = from.z + math.sin(angle) * distance,
 		half = half,
-	}
+	})
 end
 
 -- Builds one route. Returns the number of platforms and whether it reaches the summit.
@@ -270,8 +299,9 @@ local function buildRoute(
 				local candidate = if from.y >= topY
 					then approachBox(rng, from, summit, try / MAX_TRIES)
 					else nextBox(rng, from)
-				-- (the summit is in `placed`, so isValid also keeps platforms from touching it)
-				if isValid(candidate, floor, placed) then
+				-- (the summit is in `placed`, so isValid also keeps platforms from touching it;
+				-- isJumpable re-checks the distance, which grid snapping can change)
+				if isJumpable(from, candidate) and isValid(candidate, floor, placed) then
 					current = candidate
 					break
 				end
@@ -317,6 +347,8 @@ function PlatformService.build()
 	local rng = Random.new()
 	local floorTop = floor.Position.Y + floor.Size.Y / 2
 	local placed: Placed = {}
+	thickness = ThemeService.current().platformThickness
+	headClearance = HEAD_ROOM + thickness
 
 	-- The summit, in the middle at the top. Routes are not allowed under it (head clearance).
 	local summit: Box = {
@@ -348,7 +380,7 @@ function PlatformService.build()
 
 	print(
 		`Platforms built: routes {table.concat(routeCounts, ", ")} + {extras} extras; `
-			.. `{reached}/{Config.PLATFORM_PATHS} routes reach the summit (event: {EventService.current().id})`
+			.. `{reached}/{Config.PLATFORM_PATHS} routes reach the summit (map: {ThemeService.current().id}, event: {EventService.current().id})`
 	)
 	if reached == 0 then
 		warn("No route reaches the summit this round! Try more PLATFORM_PATHS or a lower PLATFORM_TOP_HEIGHT.")
