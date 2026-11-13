@@ -71,6 +71,20 @@
         "Transparency": 0.6,
         "Color": [0.8, 0.9, 1]
       }
+    },
+    {
+      "name": "Leaderboard",
+      "className": "Part",
+      "properties": {
+        "Anchored": true,
+        "CanCollide": false,
+        "Size": [18, 11, 0.6],
+        "CFrame": { "CFrame": { "position": [0, 206.5, -29.5], "orientation": [[1, 0, 0], [0, 1, 0], [0, 0, 1]] } },
+        "Color": [0.12, 0.1, 0.14],
+        "Material": { "Enum": 272 },
+        "TopSurface": { "Enum": 0 },
+        "BottomSurface": { "Enum": 0 }
+      }
     }
   ]
 }
