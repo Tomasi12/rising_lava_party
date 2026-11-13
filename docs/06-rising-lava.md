@@ -1,6 +1,6 @@
 # Step 6 — Rising lava
 
-Date: 2026-11-12 · Status: **in progress** (code written, not yet tested in Studio)
+Date: 2026-11-12 · Status: **done** (tested in Studio 2026-11-13)
 
 ## What it does
 1. **Round starts** → a thin layer of lava (0.2 studs) appears on the whole arena floor. Standing on it is safe.
@@ -63,4 +63,4 @@ Constants inside [`LavaService.luau`](../src/server/LavaService.luau) (rarely ch
 
 ## Verified so far
 - `rojo build` succeeds and `LavaService` is included in `ServerScriptService.Server` (2026-11-12).
-- Not yet run in Studio.
+- Tested in Studio by the user on 2026-11-13: works.

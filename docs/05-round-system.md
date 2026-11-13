@@ -1,6 +1,6 @@
 # Step 5 — Round system
 
-Date: 2026-11-12 · Status: **in progress** (code written, not yet tested in Studio)
+Date: 2026-11-12 · Status: **done** (tested in Studio 2026-11-13)
 
 ## What it does
 The server runs a loop forever:
@@ -65,4 +65,4 @@ So the lava, platforms and coins are separate modules and the round code doesn't
 
 ## Verified so far
 - `rojo build` succeeds and the place contains all scripts in the right services (2026-11-12).
-- Not yet run in Studio.
+- Tested in Studio by the user on 2026-11-13: works.

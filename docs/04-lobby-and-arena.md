@@ -1,6 +1,6 @@
 # Step 4 — Lobby and arena
 
-Date: 2026-11-12 · Status: **in progress** (waiting for the check in Studio)
+Date: 2026-11-12 · Status: **done** (tested in Studio 2026-11-13)
 
 ## Decision: the base map is in files, not hand-built
 The plan said "build the lobby and arena in Studio by hand". We changed that:

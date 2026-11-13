@@ -1,6 +1,6 @@
 # Step 10 — Testing guide (all steps)
 
-Date: 2026-11-12 · Status: **waiting for you to test in Studio**
+Date: 2026-11-12 · Status: **done** (tested in Studio 2026-11-13)
 
 Steps 4–9 are written and build correctly (`rojo build`), but **none of them has run in Studio yet**.
 Follow this guide from top to bottom. Each test says what you should see. If something is different,

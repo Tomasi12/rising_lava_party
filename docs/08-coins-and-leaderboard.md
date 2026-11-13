@@ -1,6 +1,6 @@
 # Step 8 — Coins and leaderboard
 
-Date: 2026-11-12 · Status: **in progress** (code written, not yet tested in Studio)
+Date: 2026-11-12 · Status: **done** (tested in Studio 2026-11-13)
 
 ## What it does
 - Every player has **Coins**, shown on the Roblox player list (top right of the screen).
@@ -47,4 +47,4 @@ Date: 2026-11-12 · Status: **in progress** (code written, not yet tested in Stu
 
 ## Verified so far
 - `rojo build` succeeds and `CoinService` is included (2026-11-12).
-- Not yet run in Studio.
+- Tested in Studio by the user on 2026-11-13: works.

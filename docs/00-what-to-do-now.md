@@ -1,6 +1,6 @@
 # What to do now
 
-Updated: 2026-11-13
+Updated: 2026-11-13 · **Done:** all tests passed on 2026-11-13. The next to-do list comes with the next plan.
 
 **Where we are:** the game code is written, but it has **never run in Studio**.
 Your job now: test it once (about 30 min, on the PC) and send Claude the results.

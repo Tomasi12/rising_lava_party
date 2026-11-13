@@ -1,6 +1,6 @@
 # Step 7 — Random platforms
 
-Date: 2026-11-12 · Status: **in progress** (code written, not yet tested in Studio)
+Date: 2026-11-12 · Status: **done** (tested in Studio 2026-11-13)
 
 ## What it does
 Before every round, the old platforms are removed and a **new random set** is built in the arena,
@@ -67,4 +67,4 @@ Make the game easier with smaller steps and gaps, harder with bigger ones.
 
 ## Verified so far
 - `rojo build` succeeds and `PlatformService` is included (2026-11-12).
-- Not yet run in Studio.
+- Tested in Studio by the user on 2026-11-13: works.

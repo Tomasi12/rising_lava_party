@@ -1,6 +1,6 @@
 # Step 9 — Save coins (DataStore)
 
-Date: 2026-11-12 · Status: **in progress** (code written, not yet tested in Studio)
+Date: 2026-11-12 · Status: **done** (tested in Studio 2026-11-13)
 
 ## What it does
 Coins are kept between sessions: leave the game, come back tomorrow, your coins are still there.
@@ -64,4 +64,4 @@ Without these, the game still runs, but Output shows a warning like
 
 ## Verified so far
 - `rojo build` succeeds and `DataService` is included (2026-11-12).
-- Not yet run in Studio.
+- Tested in Studio by the user on 2026-11-13: works.
