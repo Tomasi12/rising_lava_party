@@ -19,7 +19,7 @@ The lava (step 6) is ~102 studs high when the round ends at 90 s, so players who
 | Rule | Why |
 |---|---|
 | Platforms stay 4 studs away from the walls | no getting stuck against the glass |
-| No platform less than **8 studs** above or below another one it overlaps | players never bump their head when jumping |
+| No platform less than **13 studs** above or below another one it overlaps (with **2 studs** extra room around it) | players never bump their head when jumping. Was 8 studs with no extra room: in the first Studio test (2026-11-13) players hit their heads and could not get through |
 | The space above the 8 arena spawn points is kept free near the floor | nobody is teleported into a platform |
 | Each placement tries 12 random spots; if none fits, that route ends there | building never loops forever |
 

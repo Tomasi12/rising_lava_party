@@ -22,8 +22,9 @@ local RoundManager = require(script.Parent.RoundManager)
 
 local THICKNESS = 1 -- platform height in studs
 local EDGE_MARGIN = 4 -- keep platforms this far from the walls
-local HEAD_CLEARANCE = 8 -- min vertical space between overlapping platforms
-local MAX_TRIES = 12 -- attempts to find a valid spot before giving up on a platform
+local HEAD_CLEARANCE = 13 -- min vertical space between overlapping platforms (character ~5 + jump ~7 + margin)
+local SIDE_CLEARANCE = 2 -- extra horizontal room around a platform for that check (shoulders, jump arc)
+local MAX_TRIES = 30 -- attempts to find a valid spot before giving up on a platform
 local SPAWN_KEEP_FREE = 6 -- size of the free area above each spawn point
 
 local LOW_COLOR = Color3.fromRGB(80, 200, 120) -- green near the floor
@@ -47,7 +48,7 @@ local function getArena(): (BasePart, Folder, Folder)
 end
 
 local function overlapsHorizontally(a: Box, b: Box): boolean
-	local reach = a.half + b.half
+	local reach = a.half + b.half + SIDE_CLEARANCE
 	return math.abs(a.x - b.x) < reach and math.abs(a.z - b.z) < reach
 end
 
