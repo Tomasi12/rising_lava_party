@@ -22,3 +22,13 @@ Everything we do to build the game is documented here, one file per step.
 | 8 | [Coins and leaderboard](08-coins-and-leaderboard.md) | done |
 | 9 | [Save coins (DataStore)](09-save-coins.md) | done |
 | 10 | [Playtest (testing guide)](10-testing-guide.md), commit and push | done |
+| 11 | [Sounds and lava effects](11-sounds-and-effects.md) | in progress (not tested) |
+| 12 | [Round events](12-round-events.md) | in progress (not tested) |
+| 13 | [Spectate](13-spectate.md) | in progress (not tested) |
+| 14 | [Wins, daily reward, badges](14-wins-daily-badges.md) | in progress (not tested) |
+| 15 | [Shop: trails](15-shop-trails.md) | in progress (not tested) |
+| 16 | [Game passes: 2x Coins, VIP](16-game-passes.md) | in progress (not tested) |
+| 17 | [Developer products: Revive, coins](17-developer-products.md) | in progress (not tested) |
+| 18 | [Global leaderboard](18-global-leaderboard.md) | in progress (not tested) |
+| 19 | [Mobile check and launch checklist](19-mobile-and-launch.md) | to do by you |
+| 20 | [Testing guide 2](20-testing-guide-2.md) | waiting for test in Studio |
